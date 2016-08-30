@@ -1,6 +1,7 @@
+
 do $$ begin
    if not exists
-      (select * from pg_catalog.pg_user where usename = 'exchange') then
+      (select * from pg_catalog.pg_user where username = 'exchange') then
           create role exchange login password 'xNzoA3ZNfTe89Kqp2h';
           grant all on database exchange to exchange;   
        end if;
@@ -8,7 +9,7 @@ end $$;
 
 create table if not exists users
 (
-  id integer,
+  id serial primary key,
   token varchar(1024),
   email varchar(254),
   password text,
@@ -27,6 +28,7 @@ CREATE TABLE orders (
 	user_id int,
 	age timestamp
 );
+grant all privileges on table orders to exchange;
 
 /* sells should be sorted with the smallest price at the top, and if two match in price, oldest at the top */
 CREATE INDEX on orders(currency, price DESC, age ASC) WHERE order_type = 'sell';

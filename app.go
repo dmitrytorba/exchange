@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
-	"os"
 	"database/sql"
+	"fmt"
 	_ "github.com/lib/pq"
+	"os"
 )
 
 var db *sql.DB
@@ -33,7 +33,7 @@ func startApi() {
 func startDb() {
 	connStr := os.Getenv("EXCHANGEDB")
 	if connStr == "" {
-		panic("PSQL environment variable missing (export EXCHANGEDB='postgres://exchange:xNzoA3ZNfTe89Kqp2h@localhost/exchange?sslmode=disable')") 
+		panic("PSQL environment variable missing (export EXCHANGEDB='postgres://exchange:xNzoA3ZNfTe89Kqp2h@localhost/exchange?sslmode=disable')")
 	} else {
 		db, err := sql.Open("postgres", connStr)
 		if err != nil {
