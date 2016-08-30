@@ -1,3 +1,21 @@
+do $$ begin
+   if not exists
+      (select * from pg_catalog.pg_user where usename = 'exchange') then
+          create role exchange login password 'xNzoA3ZNfTe89Kqp2h';
+          grant all on database exchange to exchange;   
+       end if;
+end $$;
+
+create table if not exists users
+(
+  id integer,
+  token varchar(1024),
+  email varchar(254),
+  password text,
+  config text
+);
+grant all privileges on table users to exchange;
+
 CREATE TYPE category AS ENUM ('BTC/LTC');
 
 CREATE TABLE sells (
