@@ -1,7 +1,7 @@
 
 do $$ begin
    if not exists
-      (select * from pg_catalog.pg_user where username = 'exchange') then
+      (select * from pg_catalog.pg_user where usename = 'exchange') then
           create role exchange login password 'xNzoA3ZNfTe89Kqp2h';
           grant all on database exchange to exchange;   
        end if;
@@ -18,7 +18,7 @@ create table if not exists users
 grant all privileges on table users to exchange;
 
 CREATE TYPE order_type AS ENUM ('sell', 'buy');
-CREATE TYPE currency AS ENUM ('ltc');
+CREATE TYPE currency AS ENUM ('btc', 'ltc');
 
 CREATE TABLE orders (
 	order_type order_type,
@@ -26,7 +26,7 @@ CREATE TABLE orders (
 	amount bigint,
 	price bigint,
 	user_id int,
-	age timestamp
+	age timestamp DEFAULT now()
 );
 grant all privileges on table orders to exchange;
 

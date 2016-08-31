@@ -8,19 +8,25 @@ import (
 )
 
 var db *sql.DB
+var exch *exchange
 
 func main() {
 	startDb()
 	startExchange()
+
+	// testing creating an order
+	order, err := exch.createOrder(1337, 1, 1, "ltc", "sell")
+	fmt.Println(order, err)
+
 	startApi()
 }
 
 func startExchange() {
-	e, err := createExchange()
+	var err error
+	exch, err = createExchange()
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(e)
 }
 
 func startApi() {
@@ -35,7 +41,8 @@ func startDb() {
 	if connStr == "" {
 		panic("PSQL environment variable missing (export EXCHANGEDB='postgres://exchange:xNzoA3ZNfTe89Kqp2h@localhost/exchange?sslmode=disable')")
 	} else {
-		db, err := sql.Open("postgres", connStr)
+		var err error
+		db, err = sql.Open("postgres", connStr)
 		if err != nil {
 			panic(err)
 		}
