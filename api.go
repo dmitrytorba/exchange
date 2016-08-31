@@ -1,15 +1,16 @@
 package main
 
 import (
-	"log"
-	"net/http"
 	_ "database/sql"
 	"github.com/gorilla/mux"
+	"log"
+	"net/http"
 )
 
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
-	
+
+	router.HandleFunc("/", homeHandler)
 	router.HandleFunc("/signup", signupHandler).Methods("POST")
 	router.HandleFunc("/verify/{token}", verify)
 	router.HandleFunc("/login", login)
