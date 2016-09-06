@@ -17,25 +17,6 @@ create table if not exists users
 );
 grant all privileges on table users to exchange;
 
-CREATE TYPE order_type AS ENUM ('sell', 'buy');
-CREATE TYPE currency AS ENUM ('btc', 'ltc');
-
-CREATE TABLE orders (
-	order_type order_type,
-	currency currency,
-	amount bigint,
-	price bigint,
-	user_id int,
-	age timestamp DEFAULT now()
-);
-grant all privileges on table orders to exchange;
-
-/* sells should be sorted with the smallest price at the top, and if two match in price, oldest at the top */
-CREATE INDEX on orders(currency, price DESC, age ASC) WHERE order_type = 'sell';
-
-/* buys should be sorted with the largest price at the top, and if two match in price, oldest at the top */
-CREATE INDEX on orders(currency, price ASC, age ASC) WHERE order_type = 'buy';
-
 /* Theory of Operation 
 # A buy order is made
 # select all sells with price equal or below buy order price

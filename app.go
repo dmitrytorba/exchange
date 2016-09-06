@@ -11,14 +11,18 @@ var db *sql.DB
 var exch *exchange
 
 func main() {
-	startDb()
-	startExchange()
+	//startDb()
+	//startExchange()
+	//startApi()
 
-	// testing creating an order
-	order, err := exch.createOrder(1337, 1, 1, "ltc", "sell")
-	fmt.Println(order, err)
-
-	startApi()
+	orderbook := createOrderbook()
+	orderbook.match(createOrder("jacob", 100, 99, SELL))
+	execs := orderbook.match(createOrder("jacob", 200, 100, BUY))
+	for i := 0; i < len(execs); i++ {
+		exec := execs[i]
+		fmt.Printf("executed %v units at %v price from %v\n", exec.amount, exec.price, exec.name)
+	}
+	orderbook.print()
 }
 
 func startExchange() {
