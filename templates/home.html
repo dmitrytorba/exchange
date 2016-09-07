@@ -2,15 +2,25 @@
 
 {{define "body"}}
 <div class="col-2-3">
-	<h2>Buys</h2>
-	{{range .Buys}}
-	  Hello
-	{{end}}
-	
-	<h2>Sells</h2>
-	{{range .Sells}}
-	  Hello
-	{{end}}
+	<script>
+		var buys = [{{range $order := .Buys}}
+		{
+			"price": {{$order.Price}},
+			"amount": {{$order.Amount}},
+			"name": "{{$order.Name}}",
+		}, 
+		{{end}} ];
+
+		var sells = [{{range $order := .Sells}}
+		{
+			"price": {{$order.Price}},
+			"amount": {{$order.Amount}},
+			"name": "{{$order.Name}}",
+		}, 
+		{{end}} ];
+	</script>
+
+	<div id="spread-graph"></div>
 </div>
 <div class="col-1-3">
 

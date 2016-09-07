@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/list"
-	"fmt"
 	"time"
 )
 
@@ -18,11 +17,10 @@ type orderbook struct {
 
 // order represents an open order
 type order struct {
-	name       string
-	amount     int64
-	price      int64
+	Name       string
+	Amount     int64
+	Price      int64
 	order_type int
-	open       bool
 	timestamp  time.Time
 }
 
@@ -35,12 +33,11 @@ type execution struct {
 
 func createOrder(name string, amount, price int64, order_type int) *order {
 	return &order{
-		name:       name,
-		amount:     amount,
-		price:      price,
+		Name:       name,
+		Amount:     amount,
+		Price:      price,
 		order_type: order_type,
 		timestamp:  time.Now(),
-		open:       true,
 	}
 }
 
@@ -93,37 +90,37 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 		iter = e.Value.(*order)
 
 		// if matching order is a buy and price is below the buy order, FILL!
-		if (matchOrder.order_type == BUY && iter.price <= matchOrder.price) || (matchOrder.order_type == SELL && iter.price >= matchOrder.price) {
-			if matchOrder.amount >= iter.amount {
+		if (matchOrder.order_type == BUY && iter.Price <= matchOrder.Price) || (matchOrder.order_type == SELL && iter.Price >= matchOrder.Price) {
+			if matchOrder.Amount >= iter.Amount { // matching order is overfilled, we must remove it
 				// remove the order, it has been filled
 				execs = append(execs, &execution{
-					name:   iter.name,
-					amount: iter.amount,
-					price:  iter.price,
+					name:   iter.Name,
+					amount: iter.Amount,
+					price:  iter.Price,
 				})
 				list.Remove(e)
-				matchOrder.amount -= iter.amount
-			} else if matchOrder.amount < iter.amount {
+				matchOrder.Amount -= iter.Amount
+			} else if matchOrder.Amount < iter.Amount { // matching order fills initial order fully
 				execs = append(execs, &execution{
-					name:   iter.name,
-					amount: matchOrder.amount,
-					price:  iter.price,
+					name:   iter.Name,
+					amount: matchOrder.Amount,
+					price:  iter.Price,
 				})
-				iter.amount -= matchOrder.amount
-				matchOrder.amount = 0
+				iter.Amount -= matchOrder.Amount
+				matchOrder.Amount = 0
 			}
 		} else { // if no matching order can be executed, shelve the order to be executed later
 			break
 		}
 
 		// It's a good idea to stop filling orders if your matching order has been 100% filled
-		if matchOrder.amount == 0 {
+		if matchOrder.Amount == 0 {
 			break
 		}
 
 	}
 
-	if matchOrder.amount > 0 {
+	if matchOrder.Amount > 0 {
 		o.insert(matchOrder)
 	}
 
@@ -145,33 +142,17 @@ func (o *orderbook) insert(addOrder *order) {
 		iter = e.Value.(*order)
 
 		// lower priced orders first for sells
-		if addOrder.order_type == SELL && addOrder.price < iter.price {
+		if addOrder.order_type == SELL && addOrder.Price < iter.Price {
 			list.InsertBefore(addOrder, e)
 			return
 		}
 
 		// higher priced orders first for buys
-		if addOrder.order_type == BUY && addOrder.price > iter.price {
+		if addOrder.order_type == BUY && addOrder.Price > iter.Price {
 			list.InsertBefore(addOrder, e)
 			return
 		}
 	}
 
 	list.PushBack(addOrder)
-}
-
-func (o *orderbook) print() {
-	fmt.Println("SELLS")
-	fmt.Println("======================")
-	for e := o.sells.Front(); e != nil; e = e.Next() {
-		order := e.Value.(*order)
-		fmt.Printf("$%v/%v-%v\n", order.price, order.amount, order.name)
-	}
-
-	fmt.Println("BUYS")
-	fmt.Println("======================")
-	for e := o.buys.Front(); e != nil; e = e.Next() {
-		order := e.Value.(*order)
-		fmt.Printf("$%v/%v-%v\n", order.price, order.amount, order.name)
-	}
 }

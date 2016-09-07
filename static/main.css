@@ -57,6 +57,10 @@ body {
   clear: both;
 }
 
+#spread-graph {
+	height: 500px;
+}
+
 .clearfix:after {
 	visibility: hidden;
 	display: block;

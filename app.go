@@ -13,8 +13,6 @@ var exch *exchange
 func main() {
 	startDb()
 	startExchange()
-	exch.books["ltc"].insert(createOrder("john", 100, 100, BUY))
-	exch.books["ltc"].insert(createOrder("john", 100, 101, SELL))
 	startApi()
 }
 
