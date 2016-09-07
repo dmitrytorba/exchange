@@ -26,6 +26,7 @@ type order struct {
 	timestamp  time.Time
 }
 
+// execution represents an order that was matched and executed
 type execution struct {
 	name   string
 	amount int64
@@ -50,6 +51,7 @@ func createOrderbook() *orderbook {
 	return ob
 }
 
+// array takes the linked list and spits it out as an array
 func (o *orderbook) array(order_type int) []*order {
 	var array []*order
 	if order_type == BUY {
@@ -73,6 +75,9 @@ func (o *orderbook) array(order_type int) []*order {
 	return array
 }
 
+// match will match orders, deleting/modifying orders that get executed.
+// once matching is finished, the order, if unfilled, will be inserted into
+// the orderbook.
 func (o *orderbook) match(matchOrder *order) []*execution {
 	// collect all the orders we executed
 	execs := make([]*execution, 0, 10)
@@ -125,6 +130,9 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 	return execs
 }
 
+// insert will insert an order into an orderbook at the correct
+// position. It could be improved to avoid looping
+// through the entire list to place the last element.
 func (o *orderbook) insert(addOrder *order) {
 	// get the list the order belongs to
 	list := o.sells
