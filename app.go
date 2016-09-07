@@ -11,29 +11,19 @@ var db *sql.DB
 var exch *exchange
 
 func main() {
-	//startDb()
-	//startExchange()
-	//startApi()
-
-	orderbook := createOrderbook()
-	orderbook.match(createOrder("jacob", 100, 99, SELL))
-	execs := orderbook.match(createOrder("jacob", 200, 100, BUY))
-	for i := 0; i < len(execs); i++ {
-		exec := execs[i]
-		fmt.Printf("executed %v units at %v price from %v\n", exec.amount, exec.price, exec.name)
-	}
-	orderbook.print()
+	startDb()
+	startExchange()
+	exch.books["ltc"].insert(createOrder("john", 100, 100, BUY))
+	exch.books["ltc"].insert(createOrder("john", 100, 101, SELL))
+	startApi()
 }
 
 func startExchange() {
-	var err error
-	exch, err = createExchange()
-	if err != nil {
-		panic(err)
-	}
+	exch = createExchange()
 }
 
 func startApi() {
+	fmt.Println("API starting...")
 	err := api()
 	if err != nil {
 		panic(err)

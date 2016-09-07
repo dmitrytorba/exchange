@@ -15,7 +15,7 @@ func api() (err error) {
 	router.HandleFunc("/verify/{token}", verify)
 	router.HandleFunc("/login", login)
 	router.HandleFunc("/logout", logout)
-
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 	log.Fatal(http.ListenAndServe(":4200", router))
 
 	return nil

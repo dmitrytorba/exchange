@@ -2,9 +2,19 @@
 <html>
 	<head>
 		<title>{{template "title" .}}</title>
+		<link rel="stylesheet" type="text/css" href="main.css">
 	</head>
 	<body>
-		{{template "body" .}}
+		<div class="header clearfix">
+			<div class="logo">the exchange</div>
+
+			<div class="nav clearfix">
+				<a href ="/login">login</a> <a href="/signup">create an account</a>
+			</div>
+		</div>
+		<div class="container">
+			{{template "body" .}}
+		</div>
 	</body>
 </html>
 {{end}}

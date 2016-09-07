@@ -50,6 +50,29 @@ func createOrderbook() *orderbook {
 	return ob
 }
 
+func (o *orderbook) array(order_type int) []*order {
+	var array []*order
+	if order_type == BUY {
+		array = make([]*order, o.buys.Len())
+	} else {
+		array = make([]*order, o.sells.Len())
+	}
+
+	if len(array) == 0 {
+		return array
+	}
+
+	e := o.sells.Front()
+	if order_type == BUY {
+		e = o.buys.Front()
+	}
+	for i := 0; i < len(array); i++ {
+		array[i] = e.Value.(*order)
+		e = e.Next()
+	}
+	return array
+}
+
 func (o *orderbook) match(matchOrder *order) []*execution {
 	// collect all the orders we executed
 	execs := make([]*execution, 0, 10)
