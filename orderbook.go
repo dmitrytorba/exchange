@@ -86,7 +86,8 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 	}
 
 	var iter *order
-	for e := list.Front(); e != nil; e = e.Next() {
+	e := list.Front()
+	for e != nil {
 		iter = e.Value.(*order)
 
 		// if matching order is a buy and price is below the buy order, FILL!
@@ -98,9 +99,10 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 					amount: iter.Amount,
 					price:  iter.Price,
 				})
-				list.Remove(e)
+				e = e.Next()
+				list.Remove(e.Prev())
 				matchOrder.Amount -= iter.Amount
-			} else if matchOrder.Amount < iter.Amount { // matching order fills initial order fully
+			} else { // matching order fills initial order fully
 				execs = append(execs, &execution{
 					name:   iter.Name,
 					amount: matchOrder.Amount,
@@ -108,6 +110,7 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 				})
 				iter.Amount -= matchOrder.Amount
 				matchOrder.Amount = 0
+				e = e.Next()
 			}
 		} else { // if no matching order can be executed, shelve the order to be executed later
 			break

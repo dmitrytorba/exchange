@@ -1,28 +1,45 @@
 {{define "title"}}Exchange | Front Page{{end}}
 
 {{define "body"}}
-<div class="col-2-3">
-	<script>
-		var buys = [{{range $order := .Buys}}
-		{
-			"price": {{$order.Price}},
-			"amount": {{$order.Amount}},
-			"name": "{{$order.Name}}",
-		}, 
-		{{end}} ];
+<div class="grid">
+	<div class="col-2-3">
+		<script>
+			var buys = [{{range $order := .Buys}}
+			{
+				"price": {{$order.Price}},
+				"amount": {{$order.Amount}},
+				"name": "{{$order.Name}}",
+			}, 
+			{{end}} ];
 
-		var sells = [{{range $order := .Sells}}
-		{
-			"price": {{$order.Price}},
-			"amount": {{$order.Amount}},
-			"name": "{{$order.Name}}",
-		}, 
-		{{end}} ];
-	</script>
+			var sells = [{{range $order := .Sells}}
+			{
+				"price": {{$order.Price}},
+				"amount": {{$order.Amount}},
+				"name": "{{$order.Name}}",
+			}, 
+			{{end}} ];
+		</script>
 
-	<div id="spread-graph"></div>
-</div>
-<div class="col-1-3">
+		<div id="spread-graph"></div>
+	</div>
+	<div class="col-1-3 control-panel">
+		<form method="POST" action="/order">
+			<label for="price">Order Price</label>
+			<input type="text" class="full" name="price" value="100"/>
 
+			<label for="amount">Order Amount</label>
+			<input type="text" class="full" name="amount" value="1"/>
+
+			<div class="grid">
+				<div class="col-1-2">
+					<input type="submit" class="full" name="action" value="buy" autocomplete="off"/>
+				</div>
+				<div class="col-1-2">
+					<input type="submit" class="full" name="action" value="sell" autocomplete="off"/>
+				</div>
+			</div>
+		</form>
+	</div>
 </div>
 {{end}}
