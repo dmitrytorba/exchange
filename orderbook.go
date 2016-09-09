@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"fmt"
 	"time"
 )
 
@@ -26,9 +27,11 @@ type order struct {
 
 // execution represents an order that was matched and executed
 type execution struct {
-	name   string
-	amount int64
-	price  int64
+	Name   string
+	Amount int64
+	Price  int64
+	Type   string
+	Status string
 }
 
 func createOrder(name string, amount, price int64, order_type int) *order {
@@ -80,10 +83,14 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 	execs := make([]*execution, 0, 10)
 
 	// get the opposite list to match against
+	// and also a pretty string to show in the executions table
 	list := o.sells
+	pretty_type := "sell"
 	if matchOrder.order_type == SELL {
 		list = o.buys
+		pretty_type = "buy"
 	}
+	pretty_type = fmt.Sprintf("matched %v", pretty_type)
 
 	var iter *order
 	e := list.Front()
@@ -92,21 +99,26 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 
 		// if matching order is a buy and price is below the buy order, FILL!
 		if (matchOrder.order_type == BUY && iter.Price <= matchOrder.Price) || (matchOrder.order_type == SELL && iter.Price >= matchOrder.Price) {
+
 			if matchOrder.Amount >= iter.Amount { // matching order is overfilled, we must remove it
 				// remove the order, it has been filled
 				execs = append(execs, &execution{
-					name:   iter.Name,
-					amount: iter.Amount,
-					price:  iter.Price,
+					Name:   iter.Name,
+					Amount: iter.Amount,
+					Price:  iter.Price,
+					Type:   pretty_type,
+					Status: "FULL EXECUTION",
 				})
 				e = e.Next()
 				list.Remove(e.Prev())
 				matchOrder.Amount -= iter.Amount
 			} else { // matching order fills initial order fully
 				execs = append(execs, &execution{
-					name:   iter.Name,
-					amount: matchOrder.Amount,
-					price:  iter.Price,
+					Name:   iter.Name,
+					Amount: matchOrder.Amount,
+					Price:  iter.Price,
+					Type:   pretty_type,
+					Status: "PARTIAL EXECUTION",
 				})
 				iter.Amount -= matchOrder.Amount
 				matchOrder.Amount = 0

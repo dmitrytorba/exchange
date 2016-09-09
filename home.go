@@ -11,7 +11,8 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	sells := ob.array(SELL)
 
 	executeTemplate(w, "home", 200, map[string]interface{}{
-		"Sells": sells,
-		"Buys":  buys,
+		"Sells":      sells,
+		"Buys":       buys,
+		"Executions": exch.recent,
 	})
 }

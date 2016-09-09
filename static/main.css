@@ -62,6 +62,9 @@ html {
 .col-1-2 {
   width: 50%;
 }
+.col-1-4 {
+  width: 25%;
+}
 
 .grid:after {
   content: "";
@@ -69,8 +72,30 @@ html {
   clear: both;
 }
 
+.green {
+	color: green;
+	font-weight: bold;
+}
 #spread-graph {
 	height: 400px;
+}
+
+#execution-table {
+	border: 1px solid #292929;
+	border-radius: 4px;
+	margin-right:16px;
+	padding: 0px 8px;
+}
+
+#execution-table {
+	width: 100%;
+	text-align: center;
+	border: 1px solid white;
+}
+
+#execution-table td {
+	border-bottom: 2px dotted #292929;
+	padding: 8px 0px;
 }
 
 input {
@@ -81,7 +106,7 @@ input {
 	border-radius: 1px !important;
 	background-color: #292929;
 	padding: 16px 20px;
-	margin-bottom: 16px;
+	margin-bottom: 64px;
 }
 
 input[type=submit] {
