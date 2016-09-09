@@ -78,7 +78,7 @@ func (o *orderbook) array(order_type int) []*order {
 // match will match orders, deleting/modifying orders that get executed.
 // once matching is finished, the order, if unfilled, will be inserted into
 // the orderbook.
-func (o *orderbook) match(matchOrder *order) []*execution {
+func (o *orderbook) match(initial *order) []*execution {
 	// collect all the orders we executed
 	execs := make([]*execution, 0, 10)
 
@@ -86,57 +86,62 @@ func (o *orderbook) match(matchOrder *order) []*execution {
 	// and also a pretty string to show in the executions table
 	list := o.sells
 	pretty_type := "sell"
-	if matchOrder.order_type == SELL {
+	if initial.order_type == SELL {
 		list = o.buys
 		pretty_type = "buy"
 	}
 	pretty_type = fmt.Sprintf("matched %v", pretty_type)
 
-	var iter *order
+	var matched *order
 	e := list.Front()
 	for e != nil {
-		iter = e.Value.(*order)
+		matched = e.Value.(*order)
+		e = e.Next()
 
 		// if matching order is a buy and price is below the buy order, FILL!
-		if (matchOrder.order_type == BUY && iter.Price <= matchOrder.Price) || (matchOrder.order_type == SELL && iter.Price >= matchOrder.Price) {
-
-			if matchOrder.Amount >= iter.Amount { // matching order is overfilled, we must remove it
-				// remove the order, it has been filled
+		if (initial.order_type == BUY && matched.Price <= initial.Price) || (initial.order_type == SELL && matched.Price >= initial.Price) {
+			if initial.Amount >= matched.Amount { // matching order is overfilled, we must remove it
 				execs = append(execs, &execution{
-					Name:   iter.Name,
-					Amount: iter.Amount,
-					Price:  iter.Price,
+					Name:   matched.Name,
+					Amount: matched.Amount,
+					Price:  matched.Price,
 					Type:   pretty_type,
 					Status: "FULL EXECUTION",
 				})
-				e = e.Next()
+
+				// remove from the list, being careful to set the next iteration
 				list.Remove(e.Prev())
-				matchOrder.Amount -= iter.Amount
+
+				// remove from the initial order since it has not been filled yet
+				initial.Amount -= matched.Amount
+
 			} else { // matching order fills initial order fully
+
 				execs = append(execs, &execution{
-					Name:   iter.Name,
-					Amount: matchOrder.Amount,
-					Price:  iter.Price,
+					Name:   matched.Name,
+					Amount: initial.Amount,
+					Price:  matched.Price,
 					Type:   pretty_type,
 					Status: "PARTIAL EXECUTION",
 				})
-				iter.Amount -= matchOrder.Amount
-				matchOrder.Amount = 0
-				e = e.Next()
+
+				// decrease the matched order in order to fill initial order
+				matched.Amount -= initial.Amount
+				initial.Amount = 0
 			}
 		} else { // if no matching order can be executed, shelve the order to be executed later
 			break
 		}
 
 		// It's a good idea to stop filling orders if your matching order has been 100% filled
-		if matchOrder.Amount == 0 {
+		if initial.Amount == 0 {
 			break
 		}
 
 	}
 
-	if matchOrder.Amount > 0 {
-		o.insert(matchOrder)
+	if initial.Amount > 0 {
+		o.insert(initial)
 	}
 
 	return execs
@@ -152,18 +157,18 @@ func (o *orderbook) insert(addOrder *order) {
 		list = o.buys
 	}
 
-	var iter *order
+	var matched *order
 	for e := list.Front(); e != nil; e = e.Next() {
-		iter = e.Value.(*order)
+		matched = e.Value.(*order)
 
 		// lower priced orders first for sells
-		if addOrder.order_type == SELL && addOrder.Price < iter.Price {
+		if addOrder.order_type == SELL && addOrder.Price < matched.Price {
 			list.InsertBefore(addOrder, e)
 			return
 		}
 
 		// higher priced orders first for buys
-		if addOrder.order_type == BUY && addOrder.Price > iter.Price {
+		if addOrder.order_type == BUY && addOrder.Price > matched.Price {
 			list.InsertBefore(addOrder, e)
 			return
 		}
