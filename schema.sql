@@ -10,12 +10,12 @@ end $$;
 create table if not exists users
 (
   id serial primary key,
-  token varchar(1024),
   email varchar(254),
-  password text,
-  config text
+  token text,
+  password text
 );
 grant all privileges on table users to exchange;
+grant usage, select on sequence users_id_seq to exchange;
 
 /* Theory of Operation 
 # A buy order is made

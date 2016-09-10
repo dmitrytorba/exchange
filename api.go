@@ -12,7 +12,7 @@ func api() (err error) {
 
 	router.HandleFunc("/", homeHandler)
 	router.HandleFunc("/signup", signupHandler).Methods("POST")
-	router.HandleFunc("/verify/{token}", verify)
+	router.HandleFunc("/verify/{id}/{token}", verify)
 	router.HandleFunc("/login", login)
 	router.HandleFunc("/logout", logout)
 	router.HandleFunc("/order", orderHandler).Methods("POST") // creating buy/sell orders
