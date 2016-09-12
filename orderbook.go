@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/list"
-	"fmt"
 	"time"
 )
 
@@ -12,8 +11,9 @@ const (
 )
 
 type orderbook struct {
-	buys  *list.List
-	sells *list.List
+	buys    *list.List
+	sells   *list.List
+	history *executions
 }
 
 // order represents an open order
@@ -23,15 +23,6 @@ type order struct {
 	Price      int64
 	order_type int
 	timestamp  time.Time
-}
-
-// execution represents an order that was matched and executed
-type execution struct {
-	Name   string
-	Amount int64
-	Price  int64
-	Type   string
-	Status string
 }
 
 func createOrder(name string, amount, price int64, order_type int) *order {
@@ -45,9 +36,11 @@ func createOrder(name string, amount, price int64, order_type int) *order {
 }
 
 func createOrderbook() *orderbook {
-	ob := &orderbook{}
-	ob.sells = list.New()
-	ob.buys = list.New()
+	ob := &orderbook{
+		sells:   list.New(),
+		buys:    list.New(),
+		history: createExecutions(),
+	}
 	return ob
 }
 
@@ -85,12 +78,9 @@ func (o *orderbook) match(initial *order) []*execution {
 	// get the opposite list to match against
 	// and also a pretty string to show in the executions table
 	list := o.sells
-	pretty_type := "sell"
 	if initial.order_type == SELL {
 		list = o.buys
-		pretty_type = "buy"
 	}
-	pretty_type = fmt.Sprintf("matched %v", pretty_type)
 
 	var matched *order
 	e := list.Front()
@@ -102,11 +92,11 @@ func (o *orderbook) match(initial *order) []*execution {
 		if (initial.order_type == BUY && matched.Price <= initial.Price) || (initial.order_type == SELL && matched.Price >= initial.Price) {
 			if initial.Amount >= matched.Amount { // matching order is overfilled, we must remove it
 				execs = append(execs, &execution{
-					Name:   matched.Name,
-					Amount: matched.Amount,
-					Price:  matched.Price,
-					Type:   pretty_type,
-					Status: "FULL EXECUTION",
+					Name:       matched.Name,
+					Amount:     matched.Amount,
+					Price:      matched.Price,
+					Order_type: matched.order_type,
+					Status:     "FULL EXECUTION",
 				})
 
 				// remove from the list, being careful to set the next iteration
@@ -118,11 +108,11 @@ func (o *orderbook) match(initial *order) []*execution {
 			} else { // matching order fills initial order fully
 
 				execs = append(execs, &execution{
-					Name:   matched.Name,
-					Amount: initial.Amount,
-					Price:  matched.Price,
-					Type:   pretty_type,
-					Status: "PARTIAL EXECUTION",
+					Name:       matched.Name,
+					Amount:     initial.Amount,
+					Price:      matched.Price,
+					Order_type: matched.order_type,
+					Status:     "PARTIAL EXECUTION",
 				})
 
 				// decrease the matched order in order to fill initial order
@@ -143,6 +133,25 @@ func (o *orderbook) match(initial *order) []*execution {
 	if initial.Amount > 0 {
 		o.insert(initial)
 	}
+
+	// sum up the cost to the initial order
+	var countedPrice int64
+	var countedAmount int64
+	for i := 0; i < len(execs); i++ {
+		o.history.addExecution(execs[i])
+		countedAmount += execs[i].Amount
+		countedPrice += execs[i].Price * execs[i].Amount
+	}
+
+	finalExec := &execution{
+		Name:       initial.Name,
+		Amount:     countedAmount,
+		Price:      countedPrice,
+		Order_type: initial.order_type,
+		Status:     "PROCESSED",
+	}
+	execs = append(execs, finalExec)
+	o.history.addExecution(finalExec)
 
 	return execs
 }

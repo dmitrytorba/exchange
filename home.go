@@ -13,6 +13,6 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	executeTemplate(w, "home", 200, map[string]interface{}{
 		"Sells":      sells,
 		"Buys":       buys,
-		"Executions": exch.recent,
+		"Executions": ob.history.array(),
 	})
 }
