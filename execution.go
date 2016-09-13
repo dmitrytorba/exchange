@@ -6,11 +6,13 @@ const (
 	DEPTH = 100
 )
 
-// execution represents an order that was matched and executed
+// execution represents an order that was matched and executed.
+// I used PriceSum because it's nicer to just add together order
+// prices instead of figuring out the average price.
 type execution struct {
 	Name       string
 	Amount     int64
-	Price      int64
+	PriceSum   int64
 	Order_type int
 	Status     string
 }

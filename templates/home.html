@@ -1,36 +1,41 @@
 {{define "title"}}Exchange | Front Page{{end}}
 
 {{define "body"}}
+
+<script>
+	var buys = [{{range $order := .Buys}}
+		{
+			"price": {{$order.Price}},
+			"amount": {{$order.Amount}},
+			"name": "{{$order.Name}}",
+		}, 
+	{{end}} ];
+
+	var sells = [{{range $order := .Sells}}
+		{
+			"price": {{$order.Price}},
+			"amount": {{$order.Amount}},
+			"name": "{{$order.Name}}",
+		}, 
+	{{end}} ];
+</script>
+
 <div class="grid">
-	<div class="col-2-3">
-		<script>
-			var buys = [{{range $order := .Buys}}
-			{
-				"price": {{$order.Price}},
-				"amount": {{$order.Amount}},
-				"name": "{{$order.Name}}",
-			}, 
-			{{end}} ];
-
-			var sells = [{{range $order := .Sells}}
-			{
-				"price": {{$order.Price}},
-				"amount": {{$order.Amount}},
-				"name": "{{$order.Name}}",
-			}, 
-			{{end}} ];
-		</script>
-
-		<div id="spread-graph"></div>
+	<div class="col-2-3 panel">
+	<p>Spread Graph</p>
+	<div class="container">
+			<div id="spread-graph"></div>
+		</div>
 	</div>
 
-	<div class="col-1-3 control-panel">
-		<form method="POST" action="/order">
+	<div class="col-1-3 panel">
+		<p>Order Menu</p>
+		<form class="container" method="POST" action="/order">
 			<label for="price">Order Price</label>
-			<input type="text" class="full" name="price" value="100"/>
+			<input type="text" class="full" name="price" placeholder="100"/>
 
 			<label for="amount">Order Amount</label>
-			<input type="text" class="full" name="amount" value="1"/>
+			<input type="text" class="full" name="amount" placeholder="1"/>
 
 			<div class="grid">
 				<div class="col-1-2">
@@ -45,14 +50,14 @@
 </div>
 
 <div class="grid">
-	<div class="col-1-3">
-		<div>
-			<div>Executions</div>
+	<div class="panel col-2-5">
+		<p>Executions</p>
+		<div class="container">
 			<table id="execution-table">
 				<thead>
 					<tr>
 						<td>user</td>
-						<td>price</td>
+						<td>total price</td>
 						<td>amount</td>
 						<td>type</td>
 						<td>status</td>
@@ -61,7 +66,7 @@
 				{{range $execution := .Executions}}
 				<tr>
 					<td>{{$execution.Name}}</td>
-					<td>{{$execution.Price}}</td>
+					<td>{{$execution.PriceSum}}</td>
 					<td>{{$execution.Amount}}</td>
 					<td>{{$execution.Order_type}}</td>
 					<td class="green">{{$execution.Status}}</td>
@@ -70,7 +75,16 @@
 			</table>
 		</div>
 	</div>
-	<div class="col-1-3"></div>
-	<div class="col-1-3"></div>
+	<div class="col-3-5 panel">
+		<p>Chat</p>
+		<div class="container">
+			<p>User: Hello</p>
+			<p>User: Hello</p>
+			<p>User: Hello</p>
+			<p>User: Hello</p>
+			<p>User: Hello</p>
+			<p>User: Hello</p>
+		</div>
+	</div>
 </div>
 {{end}}

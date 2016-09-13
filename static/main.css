@@ -15,6 +15,17 @@ html {
   box-sizing: inherit;
 }
 
+.clearfix:after {
+	visibility: hidden;
+	display: block;
+	font-size: 0;
+	content: " ";
+	clear: both;
+	height: 0;
+	}
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
 
 .header {
 	padding: 0px 16px;
@@ -45,8 +56,8 @@ html {
 	margin-left: 8px;
 }
 
-.container {
-	padding: 16px 32px;
+body > .container {
+	padding: 16px 16px;
 }
 
 [class*='col-'] {
@@ -65,6 +76,12 @@ html {
 .col-1-4 {
   width: 25%;
 }
+.col-2-5 {
+  width: 40%;
+}
+.col-3-5 {
+  width: 60%;
+}
 
 .grid:after {
   content: "";
@@ -77,64 +94,71 @@ html {
 	font-weight: bold;
 }
 #spread-graph {
-	height: 400px;
+	height: 350px;
 }
 
 #execution-table {
-	border: 1px solid #292929;
 	border-radius: 4px;
 	margin-right:16px;
 	padding: 0px 8px;
-}
-
-#execution-table {
 	width: 100%;
 	text-align: center;
-	border: 1px solid white;
 }
 
 #execution-table td {
-	border-bottom: 2px dotted #292929;
+	border-bottom: 3px dotted white;
 	padding: 8px 0px;
-}
-
-input {
-	color: #fff;
-	font-size: 24px;
-	text-align: center;
-	border: 1px solid orange;
-	border-radius: 1px !important;
-	background-color: #292929;
-	padding: 16px 20px;
-	margin-bottom: 64px;
-}
-
-input[type=submit] {
-	cursor: pointer;
-	background-color: #A16E00;
-}
-
-label {
-	float: left;
-	font-size: 18px;
-	display: block;
-}
-
-.control-panel {
-	padding-left: 32px;
 }
 
 .full {
 	width: 100%;
 }
 
-.clearfix:after {
-	visibility: hidden;
-	display: block;
-	font-size: 0;
-	content: " ";
-	clear: both;
-	height: 0;
-	}
-* html .clearfix             { zoom: 1; } /* IE6 */
-*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+.panel {
+	margin-bottom: 32px;
+}
+.panel > p {
+	font-weight: bold;
+	margin: 0;
+	padding: 6px 8px;
+	display: inline-block;
+	border: 1px solid white;
+	border-bottom: none;
+}
+
+.panel .container {
+	padding: 8px;
+	border: 1px solid white;
+}
+
+.grid > .panel+.panel {
+	padding-left: 16px;
+}
+
+input {
+	font-size: 30px;
+	color: white;
+	padding: 8px 16px;
+	background-color: black;
+	border: 1px solid white;
+}
+
+input[type=text] {
+	margin-bottom: 32px;
+}
+
+::-webkit-input-placeholder {
+   color: #707070;
+}
+
+:-moz-placeholder { /* Firefox 18- */
+   color: #707070;  
+}
+
+::-moz-placeholder {  /* Firefox 19+ */
+   color: #707070;  
+}
+
+:-ms-input-placeholder {  
+   color: #707070;  
+}

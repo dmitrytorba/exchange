@@ -94,7 +94,7 @@ func (o *orderbook) match(initial *order) []*execution {
 				execs = append(execs, &execution{
 					Name:       matched.Name,
 					Amount:     matched.Amount,
-					Price:      matched.Price,
+					PriceSum:   matched.Price * matched.Amount,
 					Order_type: matched.order_type,
 					Status:     "FULL EXECUTION",
 				})
@@ -110,7 +110,7 @@ func (o *orderbook) match(initial *order) []*execution {
 				execs = append(execs, &execution{
 					Name:       matched.Name,
 					Amount:     initial.Amount,
-					Price:      matched.Price,
+					PriceSum:   matched.Price * initial.Amount,
 					Order_type: matched.order_type,
 					Status:     "PARTIAL EXECUTION",
 				})
@@ -140,13 +140,12 @@ func (o *orderbook) match(initial *order) []*execution {
 	for i := 0; i < len(execs); i++ {
 		o.history.addExecution(execs[i])
 		countedAmount += execs[i].Amount
-		countedPrice += execs[i].Price * execs[i].Amount
+		countedPrice += execs[i].PriceSum
 	}
-
 	finalExec := &execution{
 		Name:       initial.Name,
 		Amount:     countedAmount,
-		Price:      countedPrice,
+		PriceSum:   countedPrice,
 		Order_type: initial.order_type,
 		Status:     "PROCESSED",
 	}
