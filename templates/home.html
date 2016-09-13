@@ -22,14 +22,20 @@
 
 <div class="grid">
 	<div class="col-2-3 panel">
-	<p>Spread Graph</p>
-	<div class="container">
+		<div class="tabs">
+			<span class="active">Spread Graph</span>
+			<span>Price Graph</span>
+		</div>
+		<div class="container">
 			<div id="spread-graph"></div>
 		</div>
 	</div>
 
 	<div class="col-1-3 panel">
-		<p>Order Menu</p>
+		<div class="tabs">
+			<span class="active">Order Menu</span>
+			<span>LOL</span>
+		</div>
 		<form class="container" method="POST" action="/order">
 			<label for="price">Order Price</label>
 			<input type="text" class="full" name="price" placeholder="100"/>
@@ -51,7 +57,10 @@
 
 <div class="grid">
 	<div class="panel col-2-5">
-		<p>Executions</p>
+		<div class="tabs">
+			<span class="active">Executions</span>
+			<span>Other Stuff</span>
+		</div>
 		<div class="container">
 			<table id="execution-table">
 				<thead>
@@ -76,7 +85,10 @@
 		</div>
 	</div>
 	<div class="col-3-5 panel">
-		<p>Chat</p>
+		<div class="tabs">
+			<span class="active">Chat</span>
+			<span>Other Stuff</span>
+		</div>
 		<div class="container">
 			<p>User: Hello</p>
 			<p>User: Hello</p>

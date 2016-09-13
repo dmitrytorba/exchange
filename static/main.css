@@ -4,7 +4,7 @@ body {
 	font-size: 1rem;
 	line-height: 1.5;
 	color: #D8D9DA;
-	background: #141414;
+	background: black;
 }
 
 /* apply a natural box layout model to all elements, but allowing components to change */
@@ -29,8 +29,7 @@ html {
 
 .header {
 	padding: 0px 16px;
-    background-color: #292929;
-    border-bottom: 1px solid #141414;
+    border-bottom: 1px solid white;
     padding: 8px 32px;
 }
 
@@ -115,15 +114,24 @@ body > .container {
 }
 
 .panel {
+	background-color: black;
 	margin-bottom: 32px;
 }
-.panel > p {
+.tabs > span  {
+	cursor: pointer;
 	font-weight: bold;
 	margin: 0;
 	padding: 6px 8px;
 	display: inline-block;
-	border: 1px solid white;
+	border: 1px solid orange;
 	border-bottom: none;
+	background-color: black;
+}
+
+.tabs .active {
+	border-color: white;
+	position: relative;
+	bottom: -1px;
 }
 
 .panel .container {
