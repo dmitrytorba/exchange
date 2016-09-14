@@ -8,13 +8,13 @@
 		<div class="header clearfix">
 			<span class="logo">the exchange</span>
 
-			
+			{{if .Currencies}}
 			<ul class="tradebar">
-				<li>LTC</li>
-				<li>ETH</li>
-				<li>DOGE</li>
-				<li>NMC</li>
+				{{range $currency := .Currencies}}
+				<li>{{$currency}}</li>
+				{{end}}
 			</ul>
+			{{end}}
 
 			<div class="nav clearfix">
 				<a href ="/login">login</a><a href="/settings">settings</a>

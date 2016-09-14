@@ -11,6 +11,7 @@ var db *sql.DB
 var exch *exchange
 
 func main() {
+	createConfig()
 	startDb()
 	startExchange()
 	startApi()
