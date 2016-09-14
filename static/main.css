@@ -81,11 +81,29 @@ body > .container-small {
 .col-1-4 {
   width: 25%;
 }
+.col-1-5 {
+  width: 20%;
+}
 .col-2-5 {
   width: 40%;
 }
 .col-3-5 {
   width: 60%;
+}
+.col-4-5 {
+  width: 80%;
+}
+
+.chat-tab textarea{
+	font-size: 16px;
+	height: 100px;
+}
+
+.chat-tab .col-1-5 {
+	padding-left: 8px;
+}
+.chat-tab input {
+	height: 100px;
 }
 
 .grid:after {
@@ -169,6 +187,13 @@ input[type=text] {
 	margin-bottom: 32px;
 }
 
+input[type=button] {
+	border-color: orange;
+}
+input[type=submit] {
+	border-color: orange;
+}
+
 ::-webkit-input-placeholder {
    color: #707070;
 }
@@ -183,6 +208,15 @@ input[type=text] {
 
 :-ms-input-placeholder {  
    color: #707070;  
+}
+
+textarea {
+	padding: 8px;
+	border: 1px solid white;
+	background-color: black;
+	color: white;
+	width: 100%;
+	resize: none;
 }
 
 ul.tradebar {
