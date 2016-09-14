@@ -6,15 +6,21 @@
 	</head>
 	<body>
 		<div class="header clearfix">
-			<div class="logo">the exchange</div>
+			<span class="logo">the exchange</span>
+
+			
+			<ul class="tradebar">
+				<li>LTC</li>
+				<li>ETH</li>
+				<li>DOGE</li>
+				<li>NMC</li>
+			</ul>
 
 			<div class="nav clearfix">
-				<a href ="/login">login</a> <a href="/signup">create an account</a>
+				<a href ="/login">login</a><a href="/settings">settings</a>
 			</div>
 		</div>
-		<div class="container">
-			{{template "body" .}}
-		</div>
+		{{template "body" .}}
 
 		<script src="jquery.min.js"></script>
 		<script src="jquery.flot.min.js"></script>

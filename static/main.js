@@ -33,6 +33,19 @@ var options = {
 };
 
 $("#spread-graph").plot([
-	{ label: "Buys", data: buy_graph },
-	{ label: "Sells", data: sell_graph },
+	{ label: "Buys", data: buy_graph, color: "green" },
+	{ label: "Sells", data: sell_graph, color: "red" },
 ], options);
+
+$(".tabs span").click(function(event){
+	var parent = $(this).parent();
+	var panel = parent.parent();
+	var newtab = $("." + event.target.id + "-tab");
+
+	// make sure the active tab is set
+	panel.find(".active").removeClass("active");
+	$(this).addClass("active");
+
+	// make sure the active tab page is shown
+	newtab.addClass("active");
+});

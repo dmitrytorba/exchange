@@ -20,82 +20,88 @@
 	{{end}} ];
 </script>
 
-<div class="grid">
-	<div class="col-2-3 panel">
-		<div class="tabs">
-			<span class="active">Spread Graph</span>
-			<span>Price Graph</span>
-		</div>
-		<div class="container">
-			<div id="spread-graph"></div>
-		</div>
-	</div>
-
-	<div class="col-1-3 panel">
-		<div class="tabs">
-			<span class="active">Order Menu</span>
-			<span>LOL</span>
-		</div>
-		<form class="container" method="POST" action="/order">
-			<label for="price">Order Price</label>
-			<input type="text" class="full" name="price" placeholder="100"/>
-
-			<label for="amount">Order Amount</label>
-			<input type="text" class="full" name="amount" placeholder="1"/>
-
-			<div class="grid">
-				<div class="col-1-2">
-					<input type="submit" class="full" name="action" value="buy" autocomplete="off"/>
-				</div>
-				<div class="col-1-2">
-					<input type="submit" class="full" name="action" value="sell" autocomplete="off"/>
-				</div>
+<div class="container">
+	<div class="grid">
+		<div class="col-2-3 panel">
+			<div class="tabs">
+				<span class="active" id="spread">Spread Graph</span>
+				<span id="price">Price Graph</span>
 			</div>
-		</form>
-	</div>
-</div>
+			<div class="spread-tab container active">
+				<div id="spread-graph"></div>
+			</div>
+			<div class="price-tab container">
+				This is the price tab
+			</div>
+		</div>
 
-<div class="grid">
-	<div class="panel col-2-5">
-		<div class="tabs">
-			<span class="active">Executions</span>
-			<span>Other Stuff</span>
-		</div>
-		<div class="container">
-			<table id="execution-table">
-				<thead>
-					<tr>
-						<td>user</td>
-						<td>total price</td>
-						<td>amount</td>
-						<td>type</td>
-						<td>status</td>
-					</tr>
-				</thead>
-				{{range $execution := .Executions}}
-				<tr>
-					<td>{{$execution.Name}}</td>
-					<td>{{$execution.PriceSum}}</td>
-					<td>{{$execution.Amount}}</td>
-					<td>{{$execution.Order_type}}</td>
-					<td class="green">{{$execution.Status}}</td>
-				</tr>
-				{{end}}
-			</table>
+		<div class="col-1-3 panel">
+			<div class="tabs">
+				<span class="active" id="order">Order Menu</span>
+			</div>
+			<form class="container order-tab active" method="POST" action="/order">
+				<label for="price">Order Price</label>
+				<input type="text" class="full" name="price" placeholder="100"/>
+
+				<label for="amount">Order Amount</label>
+				<input type="text" class="full" name="amount" placeholder="1"/>
+
+				<div class="grid">
+					<div class="col-1-2">
+						<input type="submit" class="full" name="action" value="buy" autocomplete="off"/>
+					</div>
+					<div class="col-1-2">
+						<input type="submit" class="full" name="action" value="sell" autocomplete="off"/>
+					</div>
+				</div>
+			</form>
 		</div>
 	</div>
-	<div class="col-3-5 panel">
-		<div class="tabs">
-			<span class="active">Chat</span>
-			<span>Other Stuff</span>
+
+	<div class="grid">
+		<div class="panel col-2-5">
+			<div class="tabs">
+				<span class="active" id="execution">Execution Feed</span>
+				<span id="nothing">My Oustanding Orders</span>
+				<span id="nothing">My Executions</span>
+			</div>
+			<div class="container active execution-tab">
+				<table id="execution-table">
+					<thead>
+						<tr>
+							<td>user</td>
+							<td>total price</td>
+							<td>amount</td>
+							<td>type</td>
+							<td>status</td>
+						</tr>
+					</thead>
+					{{range $execution := .Executions}}
+					<tr>
+						<td>{{$execution.Name}}</td>
+						<td>{{$execution.PriceSum}}</td>
+						<td>{{$execution.Amount}}</td>
+						<td>{{$execution.Order_type}}</td>
+						<td class="green">{{$execution.Status}}</td>
+					</tr>
+					{{end}}
+				</table>
+			</div>
 		</div>
-		<div class="container">
-			<p>User: Hello</p>
-			<p>User: Hello</p>
-			<p>User: Hello</p>
-			<p>User: Hello</p>
-			<p>User: Hello</p>
-			<p>User: Hello</p>
+
+		<div class="col-3-5 panel">
+			<div class="tabs">
+				<span class="active" id="chat">Chat</span>
+				<span>Chat Settings</span>
+			</div>
+			<div class="container active chat-tab">
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+			</div>
 		</div>
 	</div>
 </div>
