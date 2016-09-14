@@ -16,6 +16,13 @@ type orderbook struct {
 	history *executions
 }
 
+// my idea for consistency:
+// keep dual copies of orderbook on sql and on memory.
+// keep orders unordered on psql
+// execute order using in memory orderbook.
+// when its time to update balances, also update/delete orders in
+// one good transaction.
+
 // order represents an open order
 type order struct {
 	Name       string
