@@ -210,8 +210,11 @@ input[type=submit] {
 }
 
 .login-panel {
-   margin: auto;
-   width: 40%; 
+   margin: 20px auto;
+   width: 40%;
+}
+.login-panel input {
+    text-align: left;
 }
 
 textarea {
