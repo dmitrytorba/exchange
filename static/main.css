@@ -28,9 +28,8 @@ html {
 
 
 .header {
-	padding: 0px 16px;
     border-bottom: 1px solid white;
-    padding: 8px 32px;
+    padding: 16px 16px;
 }
 
 .logo {
@@ -41,7 +40,7 @@ html {
 }
 
 .nav {
-	font-size: 16px 16px;
+	font-size: 16px;
 	float: right;
 }
 
@@ -51,12 +50,18 @@ html {
 	text-decoration: none;
 	color: inherit;
 	float: left;
-	padding: 12px 16px;
+	padding: 10px 16px;
 	margin-left: 8px;
 }
 
 body > .container {
 	padding: 16px 16px;
+}
+
+body > .container-small {
+	padding: 16px 16px;
+	margin: auto;
+	width: 1024px;
 }
 
 [class*='col-'] {
@@ -75,11 +80,29 @@ body > .container {
 .col-1-4 {
   width: 25%;
 }
+.col-1-5 {
+  width: 20%;
+}
 .col-2-5 {
   width: 40%;
 }
 .col-3-5 {
   width: 60%;
+}
+.col-4-5 {
+  width: 80%;
+}
+
+.chat-tab textarea{
+	font-size: 16px;
+	height: 100px;
+}
+
+.chat-tab .col-1-5 {
+	padding-left: 8px;
+}
+.chat-tab input {
+	height: 100px;
 }
 
 .grid:after {
@@ -129,12 +152,19 @@ body > .container {
 }
 
 .tabs .active {
+	cursor: inherit;
 	border-color: white;
 	position: relative;
+	padding-top: 4px;
 	bottom: -1px;
 }
 
+.panel > .active {
+	display: block !important;
+}
+
 .panel .container {
+	display: none;
 	padding: 8px;
 	border: 1px solid white;
 }
@@ -152,7 +182,15 @@ input {
 }
 
 input[type=text] {
+	text-align: center;
 	margin-bottom: 32px;
+}
+
+input[type=button] {
+	border-color: orange;
+}
+input[type=submit] {
+	border-color: orange;
 }
 
 ::-webkit-input-placeholder {
@@ -174,4 +212,34 @@ input[type=text] {
 .login-panel {
    margin: auto;
    width: 40%; 
+}
+
+textarea {
+	padding: 8px;
+	border: 1px solid white;
+	background-color: black;
+	color: white;
+	width: 100%;
+	resize: none;
+}
+
+ul.tradebar {
+	display: inline;
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.tradebar li {
+	font-weight: bold;
+	margin: 0;
+	display: inline-block;
+	float: left;
+	border: 1px solid orange;
+	margin-left: 16px;
+	padding: 3px 16px;
+	font-size: 26px;
+}
+
+.tradebar li+li {
 }

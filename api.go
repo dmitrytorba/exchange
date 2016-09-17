@@ -16,6 +16,7 @@ func api() (err error) {
 
 	router.HandleFunc("/", homeHandler)
 	router.HandleFunc("/signup", signupPageHandler).Methods("GET")
+	router.HandleFunc("/settings", settingsHandler)
 	router.HandleFunc("/signup", signupHandler).Methods("POST")
 	router.HandleFunc("/verify/{id}/{token}", verify)
 	router.HandleFunc("/login", login)
