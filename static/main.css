@@ -170,3 +170,8 @@ input[type=text] {
 :-ms-input-placeholder {  
    color: #707070;  
 }
+
+.login-panel {
+   margin: auto;
+   width: 40%; 
+}

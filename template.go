@@ -14,6 +14,7 @@ func executeTemplate(w http.ResponseWriter, name string, status int, data interf
 var tpls = map[string]*template.Template{
 	"home":  newTemplate("templates/base.html", "templates/home.html"),
 	"error": newTemplate("templates/base.html", "templates/error.html"),
+	"signup": newTemplate("templates/base.html", "templates/signup.html"),
 }
 
 func newTemplate(files ...string) *template.Template {

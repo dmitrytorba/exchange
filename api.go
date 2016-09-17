@@ -7,10 +7,15 @@ import (
 	"net/http"
 )
 
+func signupPageHandler(w http.ResponseWriter, r *http.Request) {
+		executeTemplate(w, "signup", 200, nil)
+}
+
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
 	router.HandleFunc("/", homeHandler)
+	router.HandleFunc("/signup", signupPageHandler).Methods("GET")
 	router.HandleFunc("/signup", signupHandler).Methods("POST")
 	router.HandleFunc("/verify/{id}/{token}", verify)
 	router.HandleFunc("/login", login)

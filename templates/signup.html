@@ -1,0 +1,15 @@
+{{define "title"}}Exchange | Signup Page{{end}}
+
+{{define "body"}}
+<div class="grid">
+  	<div class="panel login-panel">
+	    <form class="container" method="POST" action="/signup">
+       <label for="username">Username</label>
+			    <input type="text" class="full" name="username"/>
+       
+			    <label for="password">Password</label>
+			    <input type="password" class="full" name="password"/>
+     </form>
+   </div>
+</div>
+{{end}}
