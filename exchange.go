@@ -32,7 +32,7 @@ func fillBookWithFakeOrders(book *orderbook) {
 			Amount:     order.Amount,
 			PriceSum:   order.Price * order.Amount,
 			Order_type: SELL,
-			Status:     "Open Order",
+			Status:     OPEN,
 		})
 		book.insert(order)
 		last += rand.Int63n(5) + 1
@@ -46,7 +46,7 @@ func fillBookWithFakeOrders(book *orderbook) {
 			Amount:     order.Amount,
 			PriceSum:   order.Price * order.Amount,
 			Order_type: BUY,
-			Status:     "Open Order",
+			Status:     OPEN,
 		})
 		book.insert(order)
 		last -= rand.Int63n(5) + 1

@@ -5,6 +5,7 @@ import (
 	"time"
 )
 
+// the following constants represent the type of an order
 const (
 	BUY = iota
 	SELL
@@ -25,6 +26,7 @@ type orderbook struct {
 
 // order represents an open order
 type order struct {
+	ID         int64
 	Name       string
 	Amount     int64
 	Price      int64
@@ -103,7 +105,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Amount:     matched.Amount,
 					PriceSum:   matched.Price * matched.Amount,
 					Order_type: matched.order_type,
-					Status:     "FULL EXECUTION",
+					Status:     FULL,
 				})
 
 				// remove from the list, being careful to set the next iteration
@@ -119,7 +121,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Amount:     initial.Amount,
 					PriceSum:   matched.Price * initial.Amount,
 					Order_type: matched.order_type,
-					Status:     "PARTIAL EXECUTION",
+					Status:     PARTIAL,
 				})
 
 				// decrease the matched order in order to fill initial order
@@ -154,7 +156,7 @@ func (o *orderbook) match(initial *order) []*execution {
 		Amount:     countedAmount,
 		PriceSum:   countedPrice,
 		Order_type: initial.order_type,
-		Status:     "PROCESSED",
+		Status:     OPEN,
 	}
 	execs = append(execs, finalExec)
 	o.history.addExecution(finalExec)
