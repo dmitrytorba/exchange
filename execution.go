@@ -9,7 +9,7 @@ package main
 import ()
 
 const (
-	DEPTH = 100
+	DEPTH = 10
 )
 
 // the following constants represent how an order has been
@@ -24,9 +24,11 @@ const (
 // It uses PriceSum because it's nicer to just add together order
 // prices instead of figuring out the average price.
 type execution struct {
+	ID         int64
 	Name       string
+	Filler     string
 	Amount     int64
-	PriceSum   int64
+	Price      int64
 	Order_type int
 	Status     int
 }

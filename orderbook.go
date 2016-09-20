@@ -100,13 +100,16 @@ func (o *orderbook) match(initial *order) []*execution {
 		// if matching order is a buy and price is below the buy order, FILL!
 		if (initial.order_type == BUY && matched.Price <= initial.Price) || (initial.order_type == SELL && matched.Price >= initial.Price) {
 			if initial.Amount >= matched.Amount { // matching order is overfilled, we must remove it
-				execs = append(execs, &execution{
+				exec := &execution{
 					Name:       matched.Name,
+					Filler:     initial.Name,
 					Amount:     matched.Amount,
-					PriceSum:   matched.Price * matched.Amount,
+					Price:      matched.Price,
 					Order_type: matched.order_type,
 					Status:     FULL,
-				})
+				}
+				execs = append(execs, exec)
+				o.history.addExecution(exec)
 
 				// remove from the list, being careful to set the next iteration
 				list.Remove(e.Prev())
@@ -116,13 +119,16 @@ func (o *orderbook) match(initial *order) []*execution {
 
 			} else { // matching order fills initial order fully
 
-				execs = append(execs, &execution{
+				exec := &execution{
 					Name:       matched.Name,
+					Filler:     initial.Name,
 					Amount:     initial.Amount,
-					PriceSum:   matched.Price * initial.Amount,
+					Price:      matched.Price,
 					Order_type: matched.order_type,
 					Status:     PARTIAL,
-				})
+				}
+				execs = append(execs, exec)
+				o.history.addExecution(exec)
 
 				// decrease the matched order in order to fill initial order
 				matched.Amount -= initial.Amount
@@ -139,29 +145,22 @@ func (o *orderbook) match(initial *order) []*execution {
 
 	}
 
+	// if the order is not fully filled its a hot idea to insert it into the orderbook
+	// to later get filled
 	if initial.Amount > 0 {
 		o.insert(initial)
-	}
 
-	// what is an execution for updating the initial user's balance vs. inserting
-	// an unfilled user's order?
-	// sum up the cost to the initial order
-	var countedPrice int64
-	var countedAmount int64
-	for i := 0; i < len(execs); i++ {
-		o.history.addExecution(execs[i])
-		countedAmount += execs[i].Amount
-		countedPrice += execs[i].PriceSum
+		final := &execution{
+			Name:       initial.Name,
+			Amount:     initial.Amount,
+			Price:      initial.Price,
+			Order_type: initial.order_type,
+			Status:     OPEN,
+		}
+
+		o.history.addExecution(final)
+		execs = append(execs, final)
 	}
-	finalExec := &execution{
-		Name:       initial.Name,
-		Amount:     countedAmount,
-		PriceSum:   countedPrice,
-		Order_type: initial.order_type,
-		Status:     OPEN,
-	}
-	execs = append(execs, finalExec)
-	o.history.addExecution(finalExec)
 
 	return execs
 }

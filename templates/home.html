@@ -70,7 +70,8 @@
 					<thead>
 						<tr>
 							<td>user</td>
-							<td>total price</td>
+							<td>filler</td>
+							<td>price</td>
 							<td>amount</td>
 							<td>type</td>
 							<td>status</td>
@@ -79,7 +80,8 @@
 					{{range $execution := .Executions}}
 					<tr>
 						<td>{{$execution.Name}}</td>
-						<td>{{$execution.PriceSum}}</td>
+						<td>{{$execution.Filler}}</td>
+						<td>{{$execution.Price}}</td>
 						<td>{{$execution.Amount}}</td>
 						<td>{{$execution.Order_type}}</td>
 						<td class="green">{{$execution.Status}}</td>
