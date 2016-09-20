@@ -143,6 +143,8 @@ func (o *orderbook) match(initial *order) []*execution {
 		o.insert(initial)
 	}
 
+	// what is an execution for updating the initial user's balance vs. inserting
+	// an unfilled user's order?
 	// sum up the cost to the initial order
 	var countedPrice int64
 	var countedAmount int64

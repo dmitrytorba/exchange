@@ -1,3 +1,9 @@
+// What is an execution one might ask?
+// This exchange operates in a limbo between memory and a SQL database,
+// essentially keeping the whole orderbook cached in memory and persisted
+// on disk via database. An execution is essentially an update to the state
+// of the whole database and also an update to the orderbook. Basically an
+// execution translates to SQL insert row or update balance
 package main
 
 import ()
@@ -15,7 +21,7 @@ const (
 )
 
 // execution represents an order that was matched and executed.
-// I used PriceSum because it's nicer to just add together order
+// It uses PriceSum because it's nicer to just add together order
 // prices instead of figuring out the average price.
 type execution struct {
 	Name       string
@@ -26,6 +32,7 @@ type execution struct {
 }
 
 // executions is a history of order executions for an orderbook
+// uses a circular array for performance additions
 type executions struct {
 	history []*execution
 	start   int
