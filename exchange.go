@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"math/rand"
 )
 
@@ -24,17 +25,22 @@ func createExchange() *exchange {
 
 func fillBookWithFakeOrders(book *orderbook) {
 
+	execs := make([]*execution, 30)
 	var last int64 = 100
 	for i := 0; i < 30; i++ {
 		order := createOrder("joshua", rand.Int63n(200)+1, last, SELL)
-		book.match(order)
+		results := book.match(order)
+		execs[i] = results[0]
 		last += rand.Int63n(5) + 1
 	}
+	fmt.Println(processExecutions(execs))
 
 	last = 99
 	for i := 0; i < 30; i++ {
 		order := createOrder("jeffery", rand.Int63n(200)+1, last, BUY)
-		book.match(order)
+		results := book.match(order)
+		execs[i] = results[0]
 		last -= rand.Int63n(5) + 1
 	}
+	fmt.Println(processExecutions(execs))
 }

@@ -18,6 +18,7 @@ const (
 	PARTIAL = iota // a partial fill means we should subtract from an order in DB
 	FULL           // a full fill means we should remove an order from DB
 	OPEN           // an open order means we've created a whole new order, should get inserted
+	CANCEL         // user decided to cancel own order
 )
 
 // execution represents an order that was matched and executed.

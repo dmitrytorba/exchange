@@ -17,10 +17,14 @@ create table if not exists users
 grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;
 
-/* Theory of Operation 
-# A buy order is made
-# select all sells with price equal or below buy order price
-# while buy order is not fill, fill the lowest priced orders until filled
-# if all possible small orders exhausted, create new row in buy
-# increase the relevant balance on user's row
-*/
+CREATE TYPE ordertype AS ENUM ('buy', 'sell');
+create table if not exists orders
+(
+  id serial primary key,
+  amount bigint,
+  price bigint,
+  order_type ordertype,
+  username varchar(32)
+);
+grant all privileges on table orders to exchange;
+grant usage, select on sequence orders_id_seq to exchange;

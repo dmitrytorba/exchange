@@ -2,7 +2,6 @@ package main
 
 import (
 	"container/list"
-	"time"
 )
 
 // the following constants represent the type of an order
@@ -31,7 +30,6 @@ type order struct {
 	Amount     int64
 	Price      int64
 	order_type int
-	timestamp  time.Time
 }
 
 func createOrder(name string, amount, price int64, order_type int) *order {
@@ -40,7 +38,6 @@ func createOrder(name string, amount, price int64, order_type int) *order {
 		Amount:     amount,
 		Price:      price,
 		order_type: order_type,
-		timestamp:  time.Now(),
 	}
 }
 
