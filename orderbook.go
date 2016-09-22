@@ -98,6 +98,7 @@ func (o *orderbook) match(initial *order) []*execution {
 		if (initial.order_type == BUY && matched.Price <= initial.Price) || (initial.order_type == SELL && matched.Price >= initial.Price) {
 			if initial.Amount >= matched.Amount { // matching order is overfilled, we must remove it
 				exec := &execution{
+					ID:         matched.ID,
 					Name:       matched.Name,
 					Filler:     initial.Name,
 					Amount:     matched.Amount,
@@ -117,6 +118,7 @@ func (o *orderbook) match(initial *order) []*execution {
 			} else { // matching order fills initial order fully
 
 				exec := &execution{
+					ID:         matched.ID,
 					Name:       matched.Name,
 					Filler:     initial.Name,
 					Amount:     initial.Amount,
