@@ -146,17 +146,6 @@ func (o *orderbook) match(initial *order) []*execution {
 	// to later get filled
 	if initial.Amount > 0 {
 		o.insert(initial)
-
-		final := &execution{
-			Name:       initial.Name,
-			Amount:     initial.Amount,
-			Price:      initial.Price,
-			Order_type: initial.order_type,
-			Status:     OPEN,
-		}
-
-		o.history.addExecution(final)
-		execs = append(execs, final)
 	}
 
 	return execs

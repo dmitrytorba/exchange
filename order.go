@@ -23,15 +23,18 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var executions []*execution
+	var order *order
 	if action == "buy" {
-		executions = exch.books["ltc"].match(createOrder("somerandomguy", amounti, pricei, BUY))
+		order = createOrder("somerandomguy", amounti, pricei, BUY)
+		executions = exch.books["ltc"].match(order)
 	} else if action == "sell" {
-		executions = exch.books["ltc"].match(createOrder("somerandomguy", amounti, pricei, SELL))
+		order = createOrder("somerandomguy", amounti, pricei, SELL)
+		executions = exch.books["ltc"].match(order)
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	err = processExecutions(executions)
+	err = storeOrder(order, executions)
 	if err != nil {
 		panic(err)
 	}
