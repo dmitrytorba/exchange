@@ -5,5 +5,5 @@ import ()
 var currencies []string
 
 func createConfig() {
-	currencies = []string{"ltc", "btc"}
+	currencies = []string{"ltc", "doge", "nmc"}
 }

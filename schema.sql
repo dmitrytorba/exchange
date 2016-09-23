@@ -18,13 +18,15 @@ grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;
 
 CREATE TYPE ordertype AS ENUM ('buy', 'sell');
+CREATE TYPE currency AS ENUM ('ltc', 'doge', 'nmc');
 create table if not exists orders
 (
   id serial primary key,
   amount bigint,
   price bigint,
   order_type ordertype,
-  username varchar(32)
+  username varchar(32),
+  currency currency
 );
 grant all privileges on table orders to exchange;
 grant usage, select on sequence orders_id_seq to exchange;

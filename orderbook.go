@@ -30,14 +30,16 @@ type order struct {
 	Amount     int64
 	Price      int64
 	order_type int
+	currency   string
 }
 
-func createOrder(name string, amount, price int64, order_type int) *order {
+func createOrder(name string, amount, price int64, order_type int, currency string) *order {
 	return &order{
 		Name:       name,
 		Amount:     amount,
 		Price:      price,
 		order_type: order_type,
+		currency:   currency,
 	}
 }
 

@@ -24,11 +24,11 @@ func orderHandler(w http.ResponseWriter, r *http.Request) {
 
 	var executions []*execution
 	var order *order
-	if action == "buy" {
-		order = createOrder("somerandomguy", amounti, pricei, BUY)
+	if action == "buy" { // note that the "ltc" designation is temporary
+		order = createOrder("somerandomguy", amounti, pricei, BUY, "ltc")
 		executions = exch.books["ltc"].match(order)
 	} else if action == "sell" {
-		order = createOrder("somerandomguy", amounti, pricei, SELL)
+		order = createOrder("somerandomguy", amounti, pricei, SELL, "ltc")
 		executions = exch.books["ltc"].match(order)
 	} else {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
