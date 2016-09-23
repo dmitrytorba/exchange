@@ -2,8 +2,29 @@ package main
 
 import ()
 
-func getAllOrders() {
+func getAllOrders() ([]*order, error) {
+	orders := make([]*order, 0, 100)
+	rows, err := db.Query("SELECT id, amount, price, order_type, username FROM orders")
+	if err != nil {
+		return nil, err
+	}
 
+	defer rows.Close()
+	for rows.Next() {
+		order := &order{}
+		var order_type string
+		if err := rows.Scan(&order.ID, &order.Amount, &order.Price, &order_type, &order.Name); err != nil {
+			return nil, err
+		}
+		if order_type == "buy" {
+			order.order_type = BUY
+		} else {
+			order.order_type = SELL
+		}
+		orders = append(orders, order)
+	}
+
+	return orders, nil
 }
 
 func storeOrder(order *order, execs []*execution) error {
