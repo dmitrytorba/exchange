@@ -4,17 +4,33 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/lib/pq"
+	"gopkg.in/redis.v4"
 	"os"
 )
 
 var db *sql.DB
 var exch *exchange
+var rd *redis.Client
 
 func main() {
 	createConfig()
 	startDb()
+	startRedis()
 	startExchange()
 	startApi()
+}
+
+func startRedis() {
+	rd = redis.NewClient(&redis.Options{
+		Addr:     "localhost:6379",
+		Password: "", // no password set
+		DB:       0,  // use default DB
+	})
+
+	_, err := rd.Ping().Result()
+	if err != nil {
+		panic(err)
+	}
 }
 
 func startExchange() {

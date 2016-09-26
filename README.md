@@ -4,7 +4,7 @@ createdb exchange
 psql -f schema.sql exchange
 ```
 
-#### database.go
+#### orderbook_db.go
 This is where the orderbook is transcribed to the database. It synchronizes
 // the in-memory book with database
 
