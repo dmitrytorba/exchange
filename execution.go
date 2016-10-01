@@ -32,6 +32,7 @@ type execution struct {
 	Price      int64
 	Order_type int
 	Status     int
+	Currency   string
 }
 
 // executions is a history of order executions for an orderbook

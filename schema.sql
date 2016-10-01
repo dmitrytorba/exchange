@@ -10,9 +10,14 @@ end $$;
 create table if not exists users
 (
   id serial primary key,
+  username varchar(32),
   email varchar(254),
   token text,
-  password text
+  password text,
+  btc bigint,
+  ltc bigint,
+  doge bigint,
+  nmc bigint
 );
 grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;

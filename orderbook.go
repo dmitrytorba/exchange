@@ -107,6 +107,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Price:      matched.Price,
 					Order_type: matched.order_type,
 					Status:     FULL,
+					Currency:   matched.currency,
 				}
 				execs = append(execs, exec)
 				o.history.addExecution(exec)
@@ -127,6 +128,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Price:      matched.Price,
 					Order_type: matched.order_type,
 					Status:     PARTIAL,
+					Currency:   matched.currency,
 				}
 				execs = append(execs, exec)
 				o.history.addExecution(exec)
