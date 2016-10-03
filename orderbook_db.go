@@ -66,6 +66,7 @@ func storeOrder(order *order, execs []*execution) error {
 	} else if order != nil {
 		othercurrency = order.currency
 	}
+	fmt.Println(othercurrency)
 
 	otherbal, err := tx.Prepare(fmt.Sprintf(`UPDATE users SET %v=%v + $1 WHERE username=$2`, othercurrency, othercurrency))
 	if err != nil {
@@ -87,41 +88,26 @@ func storeOrder(order *order, execs []*execution) error {
 			return err
 		}
 
-		// update the balance for the seller
-		if exec.Order_type == SELL {
-			// increase the sellers default currency
-			_, err = defaultbal.Exec(exec.Amount*exec.Price, exec.Name)
+		// handle per execution balance logic here
+		// NOTE: the only person who should get his balance decreased is always you
+		// the original owner of the order has already had his balance decreased for either the
+		// target currency or the default currency
+		if exec.Order_type == BUY {
+			// the creator of this order being executed is looking to buy the currency and has already
+			// payed with the default currency, meanwhile you are looking to sell your other currency and
+			// get the default currency
+			otherbal.Exec(exec.Amount, exec.Name)
+			otherbal.Exec(-exec.Amount, exec.Filler)
+
+			defaultbal.Exec(exec.Amount*exec.Price, exec.Filler)
 		} else {
-			// give the seller the currency he was looking for
-			_, err = otherbal.Exec(exec.Amount, exec.Name)
-		}
+			fmt.Println("sell")
+			// the creator of this order being executed is looking to sell this currency (already payed with it) and receive payment for
+			// it in the default currency, while you are looking to buy his currency and pay with the default currency
+			otherbal.Exec(exec.Amount, exec.Filler)
 
-		if err != nil {
-			return err
-		}
-
-		// update the balance for the buyer
-		if exec.Order_type == SELL {
-			// sell and the user who bought the sell gets the non default currency
-			_, err = otherbal.Exec(exec.Amount, exec.Filler)
-			if err != nil {
-				return err
-			}
-			// decrease the currency the buyer is using to pay with
-			_, err = defaultbal.Exec(-exec.Amount*exec.Price, exec.Filler)
-
-		} else {
-			// buy and the user sold to him so give him the default currency
-			_, err = defaultbal.Exec(exec.Amount*exec.Price, exec.Filler)
-			if err != nil {
-				return err
-			}
-			// decrease the currency the buyer is using to pay with
-			_, err = otherbal.Exec(-exec.Amount, exec.Filler)
-		}
-
-		if err != nil {
-			return err
+			defaultbal.Exec(exec.Amount*exec.Price, exec.Name)
+			defaultbal.Exec(-exec.Amount*exec.Price, exec.Filler)
 		}
 	}
 
@@ -142,14 +128,16 @@ func storeOrder(order *order, execs []*execution) error {
 			return err
 		}
 
-		// decrease the user's balance to accompany the newly inserted order
-		if order.order_type == SELL {
-			_, err = otherbal.Exec(-order.Amount*order.Price, order.Name)
+		// handle final order balance movement here
+		if order.order_type == BUY {
+			// You are looking to buy the currency and pay with the default currency, we're gonna make you
+			// preemptively pay in the default currency so you can't just put down an order and then withdraw
+			// your whole balance
+			defaultbal.Exec(-order.Amount*order.Price, order.Name)
 		} else {
-			_, err = defaultbal.Exec(-order.Amount, order.Name)
-		}
-		if err != nil {
-			return err
+			// your looking to receive the default currency for these coins that you have, so were gonna
+			// do the opposite of what I said above but we're still gonna debit you in the same way
+			otherbal.Exec(order.Amount, order.Name)
 		}
 	}
 
