@@ -88,24 +88,22 @@ func storeOrder(order *order, execs []*execution) error {
 		}
 
 		// handle per execution balance logic here
-		// NOTE: the only person who should get his balance decreased is always you
-		// the original owner of the order has already had his balance decreased for either the
-		// target currency or the default currency
+		convertedSum := exec.Amount * exec.Price
 		if exec.Order_type == BUY {
 			// the creator of this order being executed is looking to buy the currency and has already
 			// payed with the default currency, meanwhile you are looking to sell your other currency and
 			// get the default currency
-			otherbal.Exec(exec.Amount, exec.Name)
-			otherbal.Exec(-exec.Amount, exec.Filler)
 
-			defaultbal.Exec(exec.Amount*exec.Price, exec.Filler)
+			otherbal.Exec(exec.Amount, exec.Name)      // give the guy the currency he was asking for
+			otherbal.Exec(-exec.Amount, exec.Filler)   // this ofc comes from your balance
+			defaultbal.Exec(convertedSum, exec.Filler) // in return we give you money
 		} else {
-			// the creator of this order being executed is looking to sell this currency (already payed with it) and receive payment for
+			// the creator of this order being executed is looking to sell his currency and receive payment for
 			// it in the default currency, while you are looking to buy his currency and pay with the default currency
-			otherbal.Exec(exec.Amount, exec.Filler)
 
-			defaultbal.Exec(exec.Amount*exec.Price, exec.Name)
-			defaultbal.Exec(-exec.Amount*exec.Price, exec.Filler)
+			otherbal.Exec(exec.Amount, exec.Filler)     // you get the currency you were looking for
+			defaultbal.Exec(convertedSum, exec.Name)    // in exchange the seller gets the default currency
+			defaultbal.Exec(-convertedSum, exec.Filler) // which comes from you
 		}
 	}
 
@@ -133,9 +131,9 @@ func storeOrder(order *order, execs []*execution) error {
 			// your whole balance
 			defaultbal.Exec(-order.Amount*order.Price, order.Name)
 		} else {
-			// your looking to receive the default currency for these coins that you have, so were gonna
-			// do the opposite of what I said above but we're still gonna debit you in the same way
-			otherbal.Exec(order.Amount, order.Name)
+			// you're looking to receive the default currency for these coins that you have, so were gonna
+			// do the opposite of what I said above but we're still gonna ding your balance in the same way
+			otherbal.Exec(-order.Amount, order.Name)
 		}
 	}
 
