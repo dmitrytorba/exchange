@@ -2,6 +2,7 @@ var buy_graph = [];
 var sell_graph = [];
 
 var last;
+
 for (var i = 0; i < buys.length; i++) {
 	var buy = buys[i];
 

@@ -33,12 +33,14 @@ func createExchange() *exchange {
 	}
 
 	// fill the orderbook with persisted orders
-	orders, err := getAllOrders()
-	if err != nil {
-		panic(err)
-	}
-	for i := 0; i < len(orders); i++ {
-		e.books[orders[i].currency].insert(orders[i])
+	if count > 0 {
+		orders, err := getAllOrders()
+		if err != nil {
+			panic(err)
+		}
+		for i := 0; i < len(orders); i++ {
+			e.books[orders[i].currency].insert(orders[i])
+		}
 	}
 
 	return e
