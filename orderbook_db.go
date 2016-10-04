@@ -66,7 +66,6 @@ func storeOrder(order *order, execs []*execution) error {
 	} else if order != nil {
 		othercurrency = order.currency
 	}
-	fmt.Println(othercurrency)
 
 	otherbal, err := tx.Prepare(fmt.Sprintf(`UPDATE users SET %v=%v + $1 WHERE username=$2`, othercurrency, othercurrency))
 	if err != nil {
@@ -101,7 +100,6 @@ func storeOrder(order *order, execs []*execution) error {
 
 			defaultbal.Exec(exec.Amount*exec.Price, exec.Filler)
 		} else {
-			fmt.Println("sell")
 			// the creator of this order being executed is looking to sell this currency (already payed with it) and receive payment for
 			// it in the default currency, while you are looking to buy his currency and pay with the default currency
 			otherbal.Exec(exec.Amount, exec.Filler)
@@ -112,7 +110,7 @@ func storeOrder(order *order, execs []*execution) error {
 	}
 
 	// insert the order into the orderbook
-	if order != nil {
+	if order != nil && order.Amount > 0 {
 		insert, err := tx.Prepare(`INSERT INTO orders (amount, price, order_type, username, currency) VALUES ($1, $2, $3, $4, $5) RETURNING id`)
 		if err != nil {
 			return err
