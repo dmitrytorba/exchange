@@ -8,4 +8,4 @@ DROP DATABASE exchange;
 CREATE DATABASE exchange;
 EOF
 
-psql -f schema.sql exchange
+psql -f ./schema.sql exchange

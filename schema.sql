@@ -15,15 +15,13 @@ create table if not exists users
   token text,
   password text,
   btc bigint,
-  ltc bigint,
-  doge bigint,
-  nmc bigint
+  ltc bigint
 );
 grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;
 
 CREATE TYPE ordertype AS ENUM ('buy', 'sell');
-CREATE TYPE currency AS ENUM ('ltc', 'doge', 'nmc');
+CREATE TYPE currency AS ENUM ('btc', 'ltc');
 create table if not exists orders
 (
   id serial primary key,
