@@ -5,12 +5,14 @@ import (
 )
 
 type exchange struct {
-	books map[string]*orderbook
+	books      map[string]*orderbook
+	currencies []string
 }
 
 func createExchange() *exchange {
 	e := &exchange{
-		books: make(map[string]*orderbook),
+		books:      make(map[string]*orderbook),
+		currencies: make([]string, 0, 10),
 	}
 
 	// check the db to see if its empty, if it is fill it with
@@ -21,12 +23,27 @@ func createExchange() *exchange {
 		panic(err)
 	}
 
+	// get our currency types from the database
+	e.currencies = make([]string, 0, 10)
+	rows, err := db.Query("SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = 'currency'")
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var name string
+		if err := rows.Scan(&name); err != nil {
+			panic(err)
+		}
+
+		e.currencies = append(e.currencies, name)
+	}
+
 	// cycle through the config currencies, creating an orderbook for each
 	// also fill with fake orders if needed
-	for i := 0; i < len(currencies); i++ {
-		currency := currencies[i]
-		e.books[currencies[i]] = createOrderbook()
-
+	for i := 0; i < len(e.currencies); i++ {
+		currency := e.currencies[i]
+		e.books[currency] = createOrderbook()
 		if count == 0 {
 			fillBookWithFakeOrders(e.books[currency], currency)
 		}
@@ -39,7 +56,14 @@ func createExchange() *exchange {
 			panic(err)
 		}
 		for i := 0; i < len(orders); i++ {
-			e.books[orders[i].currency].insert(orders[i])
+
+			// I added the following if statement to stop a weird situation:
+			// lets imagine that we have specified two currencies (btc, ltc)
+			// but for some reason the database also has an old "nmc" currency
+			// in the orderbook, we otta ignore the nmc currency
+			if book, ok := e.books[orders[i].currency]; ok {
+				book.insert(orders[i])
+			}
 		}
 	}
 

@@ -56,7 +56,7 @@ func createOrderbook() *orderbook {
 func (o *orderbook) array(order_type int) []*order {
 	var array []*order
 	if order_type == BUY {
-		array = make([]*order, o.buys.Len())
+		array = make([]*order, o.buys.Len()) // Note .Len() is not a typo that came accidentally from JS
 	} else {
 		array = make([]*order, o.sells.Len())
 	}
