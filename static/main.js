@@ -1,3 +1,6 @@
+import $ from 'jquery'
+import 'flot'
+
 var buy_graph = [];
 var sell_graph = [];
 
@@ -20,7 +23,7 @@ for (var i = 0; i < sells.length; i++) {
 
 	if (i > 0) {
 		sell.amount += last.amount
-	}
+	} 
 
 	sell_graph.push([sell.price, sell.amount]);
 

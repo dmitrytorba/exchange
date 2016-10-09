@@ -1,3 +1,12 @@
+#### setup
+npm install
+
+#### build
+./build.sh
+
+#### adding js libraries
+npm install jquery --save
+
 #### database
 ```
 createdb exchange
