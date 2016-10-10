@@ -1,5 +1,6 @@
 import $ from 'jquery'
 import 'flot'
+import './login.js'
 
 var buy_graph = [];
 var sell_graph = [];
