@@ -1,0 +1,23 @@
+{
+  "name": "exchange_js",
+  "version": "1.0.0",
+  "description": "exchange js builder",
+  "main": "webpack",
+  "repository": {
+    "type": "git",
+    "url": "https://git.torba.us/exchange.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "dependencies": {
+    "flot": "^0.8.0-alpha",
+    "jquery": "^3.1.1"
+  },
+  "devDependencies": {
+    "babel-core": "^6.17.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.16.0",
+    "webpack": "^1.13.2"
+  }
+}
