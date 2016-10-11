@@ -6,7 +6,9 @@
 // execution translates to SQL insert row or update balance
 package main
 
-import ()
+import (
+	"time"
+)
 
 const (
 	DEPTH = 10
@@ -33,6 +35,7 @@ type execution struct {
 	Order_type int
 	Status     int
 	Currency   string
+	Time       time.Time
 }
 
 // executions is a history of order executions for an orderbook

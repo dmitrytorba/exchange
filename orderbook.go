@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"time"
 )
 
 // the following constants represent the type of an order
@@ -14,6 +15,7 @@ type orderbook struct {
 	buys    *list.List
 	sells   *list.List
 	history *executions
+	ticker  chan *execution
 }
 
 // my idea for consistency:
@@ -48,6 +50,7 @@ func createOrderbook() *orderbook {
 		sells:   list.New(),
 		buys:    list.New(),
 		history: createExecutions(),
+		ticker:  make(chan *execution),
 	}
 	return ob
 }
@@ -108,7 +111,10 @@ func (o *orderbook) match(initial *order) []*execution {
 					Order_type: matched.order_type,
 					Status:     FULL,
 					Currency:   matched.currency,
+					Time:       time.Now(),
 				}
+				// add our execution to the ticker and history
+				o.ticker <- exec
 				execs = append(execs, exec)
 				o.history.addExecution(exec)
 
@@ -129,7 +135,11 @@ func (o *orderbook) match(initial *order) []*execution {
 					Order_type: matched.order_type,
 					Status:     PARTIAL,
 					Currency:   matched.currency,
+					Time:       time.Now(),
 				}
+
+				// add our execution to the ticker and history
+				o.ticker <- exec
 				execs = append(execs, exec)
 				o.history.addExecution(exec)
 
