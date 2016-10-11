@@ -2,30 +2,24 @@
 // updates for our users
 package main
 
-import (
-	"fmt"
-)
+import ()
 
 const (
-	MESSAGE_THRESHOLD = 100
+	MESSAGE_CHUNK = 100
 )
 
 type ticker struct {
-	ticks chan []*execution
+	ticks chan *execution
 }
 
-func (t *ticker) readTicks() {
-	for i := range t.ticks {
-		fmt.Println(i)
-	}
+func (t *ticker) addExecution(exec *execution) {
+	t.ticks <- exec
 }
 
 func StartTicker() *ticker {
 	t := &ticker{
-		ticks: make(chan []*execution),
+		ticks: make(chan *execution),
 	}
-
-	go t.readTicks()
 
 	return t
 }
