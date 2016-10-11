@@ -15,14 +15,6 @@ func createExchange() *exchange {
 		currencies: make([]string, 0, 10),
 	}
 
-	// check the db to see if its empty, if it is fill it with
-	// fake orders fo dev purposes
-	var count int64
-	err := db.QueryRow("SELECT count(*) FROM orders").Scan(&count)
-	if err != nil {
-		panic(err)
-	}
-
 	// get our currency types from the database
 	e.currencies = make([]string, 0, 10)
 	rows, err := db.Query("SELECT e.enumlabel FROM pg_enum e JOIN pg_type t ON e.enumtypid = t.oid WHERE t.typname = 'currency'")
@@ -40,34 +32,30 @@ func createExchange() *exchange {
 	}
 
 	// cycle through the config currencies, creating an orderbook for each
-	// also fill with fake orders if needed
 	for i := 0; i < len(e.currencies); i++ {
 		currency := e.currencies[i]
 		e.books[currency] = createOrderbook()
-		if count == 0 {
-			fillBookWithFakeOrders(e.books[currency], currency)
-		}
-	}
-
-	// fill the orderbook with persisted orders
-	if count > 0 {
-		orders, err := getAllOrders()
-		if err != nil {
-			panic(err)
-		}
-		for i := 0; i < len(orders); i++ {
-
-			// I added the following if statement to stop a weird situation:
-			// lets imagine that we have specified two currencies (btc, ltc)
-			// but for some reason the database also has an old "nmc" currency
-			// in the orderbook, we otta ignore the nmc currency
-			if book, ok := e.books[orders[i].currency]; ok {
-				book.insert(orders[i])
-			}
-		}
 	}
 
 	return e
+}
+
+func (e *exchange) loadFromDB() {
+	// fill the orderbook with persisted orders
+	orders, err := getAllOrders()
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i < len(orders); i++ {
+
+		// I added the following if statement to stop a weird situation:
+		// lets imagine that we have specified two currencies (btc, ltc)
+		// but for some reason the database also has an old "nmc" currency
+		// in the orderbook, we otta ignore the nmc currency
+		if book, ok := e.books[orders[i].currency]; ok {
+			book.insert(orders[i])
+		}
+	}
 }
 
 func fillBookWithFakeOrders(book *orderbook, currency string) {

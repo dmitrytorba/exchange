@@ -13,10 +13,13 @@ var exch *exchange
 var rd *redis.Client
 
 func main() {
-	createConfig()
 	startDb()
 	startRedis()
 	startExchange()
+
+	// make sure we get all those orders stored in the database
+	exch.loadFromDB()
+
 	startApi()
 }
 

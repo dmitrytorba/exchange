@@ -13,6 +13,16 @@ createdb exchange
 psql -f schema.sql exchange
 ```
 
+#### how to run the benchmarks
+```
+go test -bench=.
+```
+
+#### how to run the go program
+```
+go build && ./exchange
+```
+
 #### orderbook_db.go
 This is where the orderbook is transcribed to the database. It synchronizes
 // the in-memory book with database
