@@ -246,3 +246,42 @@ ul.tradebar {
 
 .tradebar li+li {
 }
+
+.modal {
+    position: absolute;
+    left: 10%;
+    top: 10%;
+    width: 80%;
+    background: black;
+    z-index: 20;
+    border: 1px solid white;
+}
+
+.modal-overlay {
+    background-color: black;
+    background: rgba(0,0,0,.8);
+    height: 100%;
+    left: 0;
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.modal .modal-body {
+    padding: 0 20px 20px;
+}
+
+.modal h1 {
+    line-height: 1;
+}
+
+.modal input[type=text] {
+    text-align: left;
+}
+
+.modal .signup-button {
+    float: right;
+    margin: 20px 0;
+}
+

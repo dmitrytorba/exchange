@@ -11,7 +11,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("email")
+	email := r.FormValue("username")
 	password := r.FormValue("password")
 	signup(email, password, w)
 }
