@@ -155,7 +155,6 @@ func (o *orderbook) match(initial *order) []*execution {
 		if initial.Amount == 0 {
 			break
 		}
-
 	}
 
 	// if the order is not fully filled its a hot idea to insert it into the orderbook
@@ -195,4 +194,10 @@ func (o *orderbook) insert(addOrder *order) {
 	}
 
 	list.PushBack(addOrder)
+}
+
+func (o *orderbook) readTicker() {
+	for {
+		<-o.ticker
+	}
 }

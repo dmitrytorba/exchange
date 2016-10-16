@@ -54,6 +54,10 @@ func storeOrder(order *order, execs []*execution) error {
 	if err != nil {
 		return err
 	}
+	record, err := tx.Prepare(`INSERT INTO executions (amount, price, order_type, filler, username, currency) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`)
+	if err != nil {
+		return err
+	}
 
 	defaultbal, err := tx.Prepare(fmt.Sprintf(`UPDATE users SET %v=%v + $1 WHERE username=$2`, DEFAULT_CURRENCY, DEFAULT_CURRENCY))
 	if err != nil {
@@ -82,7 +86,12 @@ func storeOrder(order *order, execs []*execution) error {
 		case FULL:
 			_, err = remove.Exec(exec.ID)
 		}
+		if err != nil {
+			return err
+		}
 
+		// record the history of the execution
+		err = record.QueryRow(exec.Amount, exec.Price, typeToString(exec.Order_type), exec.Filler, exec.Name, exec.Currency).Scan(&exec.ID)
 		if err != nil {
 			return err
 		}
@@ -114,12 +123,7 @@ func storeOrder(order *order, execs []*execution) error {
 			return err
 		}
 
-		typestring := "sell"
-		if order.order_type == BUY {
-			typestring = "buy"
-		}
-
-		err = insert.QueryRow(order.Amount, order.Price, typestring, order.Name, order.currency).Scan(&order.ID)
+		err = insert.QueryRow(order.Amount, order.Price, typeToString(order.order_type), order.Name, order.currency).Scan(&order.ID)
 		if err != nil {
 			return err
 		}
@@ -139,4 +143,12 @@ func storeOrder(order *order, execs []*execution) error {
 
 	return tx.Commit()
 
+}
+
+func typeToString(cur int) string {
+	if cur == BUY {
+		return "buy"
+	} else {
+		return "sell"
+	}
 }

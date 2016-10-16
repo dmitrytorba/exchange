@@ -33,3 +33,17 @@ create table if not exists orders
 );
 grant all privileges on table orders to exchange;
 grant usage, select on sequence orders_id_seq to exchange;
+
+create table if not exists executions
+(
+  id serial primary key,
+  amount bigint,
+  price bigint,
+  order_type ordertype,
+  filler varchar(32),
+  username varchar(32),
+  currency currency
+);
+grant all privileges on table executions to exchange;
+grant usage, select on sequence executions_id_seq to exchange;
+

@@ -35,6 +35,7 @@ func createExchange() *exchange {
 	for i := 0; i < len(e.currencies); i++ {
 		currency := e.currencies[i]
 		e.books[currency] = createOrderbook()
+		go e.books[currency].readTicker()
 	}
 
 	return e
