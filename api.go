@@ -8,7 +8,7 @@ import (
 )
 
 func signupPageHandler(w http.ResponseWriter, r *http.Request) {
-		executeTemplate(w, "signup", 200, nil)
+	executeTemplate(w, "signup", 200, nil)
 }
 
 func api() (err error) {
@@ -22,6 +22,7 @@ func api() (err error) {
 	router.HandleFunc("/login", login)
 	router.HandleFunc("/logout", logout)
 	router.HandleFunc("/order", orderHandler).Methods("POST") // creating buy/sell orders
+	router.HandleFunc("/history", historyHandler)
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 	log.Fatal(http.ListenAndServe(":4200", router))
 
