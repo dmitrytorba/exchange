@@ -7,11 +7,11 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"strconv"
-	"errors"
 )
 
 type User struct {
 	id              int64
+	username        string
 	email           string
 	password        string
 	activationToken string
@@ -32,7 +32,7 @@ func findUserByEmail(email string) *User {
 }
 
 func authenticateByToken(idStr string, token string) *User {
-	var usr User
+	usr := User{}
 	var tokenHash string
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
@@ -50,23 +50,21 @@ func authenticateByToken(idStr string, token string) *User {
 	return &usr
 }
 
-func authenticateByPassword(email string, password string) (*User, error) {
+func authenticateByPassword(email string, password string) (*User) {
 	var usr User
 	var tokenHash string
 	var passwordHash string
 	queryStr := "select id, password, token from users where email = $1"
 	err := db.QueryRow(queryStr, email).Scan(&usr.id, &passwordHash, &tokenHash)
 	if err != nil {
-		return nil, err
-	}
-	if tokenHash != "" {
-		return nil, errors.New("pending activation")
+		return nil
 	}
 	err = scrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
-		return nil, err
+		return nil
 	}
-	return &usr, nil
+	usr.email = email
+	return &usr
 }
 
 func generateToken() string {

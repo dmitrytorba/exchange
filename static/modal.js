@@ -21,4 +21,8 @@ export function showModal(config) {
     var $modal = $(buildHtml(content))    
     $('body').append($modal)
     $('.modal-overlay').click(e => closeModal($modal)) 
+    return {
+        $el: $modal,
+        closeModal: () => { closeModal($modal) }
+    }
 }

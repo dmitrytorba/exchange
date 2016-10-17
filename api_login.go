@@ -7,7 +7,16 @@ import (
 )
 
 func login(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "login")
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	usr := authenticateByPassword(username, password)
+
+	if usr == nil {
+		w.WriteHeader(401)
+	} else {
+		fmt.Fprintln(w, usr.email)
+	}
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {

@@ -280,7 +280,7 @@ ul.tradebar {
     text-align: left;
 }
 
-.modal .signup-button {
+.modal input[type=button] {
     float: right;
     margin: 20px 0;
 }

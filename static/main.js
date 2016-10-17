@@ -1,6 +1,7 @@
 import $ from 'jquery'
 import 'flot'
-import {showLogin, showSignup} from './login.js'
+import { showLogin } from './login.js'
+import { showSignup } from './signup.js'
 
 // TODO: add router instead of click events
 $('.login-button').click(showLogin);
