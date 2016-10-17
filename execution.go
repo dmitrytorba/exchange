@@ -35,7 +35,7 @@ type execution struct {
 	Order_type int
 	Status     int
 	Currency   string
-	Time       time.Time
+	Timestamp  time.Time
 }
 
 // executions is a history of order executions for an orderbook

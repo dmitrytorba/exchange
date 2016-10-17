@@ -33,6 +33,7 @@ type order struct {
 	Price      int64
 	order_type int
 	currency   string
+	timestamp  time.Time
 }
 
 func createOrder(name string, amount, price int64, order_type int, currency string) *order {
@@ -42,6 +43,7 @@ func createOrder(name string, amount, price int64, order_type int, currency stri
 		Price:      price,
 		order_type: order_type,
 		currency:   currency,
+		timestamp:  time.Now(),
 	}
 }
 
@@ -111,7 +113,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Order_type: matched.order_type,
 					Status:     FULL,
 					Currency:   matched.currency,
-					Time:       time.Now(),
+					Timestamp:  time.Now(),
 				}
 				// add our execution to the ticker and history
 				o.ticker <- exec
@@ -135,7 +137,7 @@ func (o *orderbook) match(initial *order) []*execution {
 					Order_type: matched.order_type,
 					Status:     PARTIAL,
 					Currency:   matched.currency,
-					Time:       time.Now(),
+					Timestamp:  time.Now(),
 				}
 
 				// add our execution to the ticker and history

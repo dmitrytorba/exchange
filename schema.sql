@@ -29,7 +29,8 @@ create table if not exists orders
   price bigint,
   order_type ordertype,
   username varchar(32),
-  currency currency
+  currency currency,
+  timestamp timestamp
 );
 grant all privileges on table orders to exchange;
 grant usage, select on sequence orders_id_seq to exchange;
@@ -42,7 +43,8 @@ create table if not exists executions
   order_type ordertype,
   filler varchar(32),
   username varchar(32),
-  currency currency
+  currency currency,
+  timestamp timestamp
 );
 grant all privileges on table executions to exchange;
 grant usage, select on sequence executions_id_seq to exchange;

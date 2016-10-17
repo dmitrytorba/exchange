@@ -54,7 +54,7 @@ func storeOrder(order *order, execs []*execution) error {
 	if err != nil {
 		return err
 	}
-	record, err := tx.Prepare(`INSERT INTO executions (amount, price, order_type, filler, username, currency) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`)
+	record, err := tx.Prepare(`INSERT INTO executions (amount, price, order_type, filler, username, currency, timestamp) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id`)
 	if err != nil {
 		return err
 	}
@@ -91,7 +91,7 @@ func storeOrder(order *order, execs []*execution) error {
 		}
 
 		// record the history of the execution
-		err = record.QueryRow(exec.Amount, exec.Price, typeToString(exec.Order_type), exec.Filler, exec.Name, exec.Currency).Scan(&exec.ID)
+		err = record.QueryRow(exec.Amount, exec.Price, typeToString(exec.Order_type), exec.Filler, exec.Name, exec.Currency, exec.Timestamp.String()).Scan(&exec.ID)
 		if err != nil {
 			return err
 		}
@@ -118,12 +118,12 @@ func storeOrder(order *order, execs []*execution) error {
 
 	// insert the order into the orderbook
 	if order != nil && order.Amount > 0 {
-		insert, err := tx.Prepare(`INSERT INTO orders (amount, price, order_type, username, currency) VALUES ($1, $2, $3, $4, $5) RETURNING id`)
+		insert, err := tx.Prepare(`INSERT INTO orders (amount, price, order_type, username, currency, timestamp) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`)
 		if err != nil {
 			return err
 		}
 
-		err = insert.QueryRow(order.Amount, order.Price, typeToString(order.order_type), order.Name, order.currency).Scan(&order.ID)
+		err = insert.QueryRow(order.Amount, order.Price, typeToString(order.order_type), order.Name, order.currency, order.timestamp.String()).Scan(&order.ID)
 		if err != nil {
 			return err
 		}
