@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 const (
@@ -91,7 +92,7 @@ func storeOrder(order *order, execs []*execution) error {
 		}
 
 		// record the history of the execution
-		err = record.QueryRow(exec.Amount, exec.Price, typeToString(exec.Order_type), exec.Filler, exec.Name, exec.Currency, exec.Timestamp.String()).Scan(&exec.ID)
+		err = record.QueryRow(exec.Amount, exec.Price, typeToString(exec.Order_type), exec.Filler, exec.Name, exec.Currency, exec.Timestamp.Format(time.RFC3339)).Scan(&exec.ID)
 		if err != nil {
 			return err
 		}
@@ -123,7 +124,7 @@ func storeOrder(order *order, execs []*execution) error {
 			return err
 		}
 
-		err = insert.QueryRow(order.Amount, order.Price, typeToString(order.order_type), order.Name, order.currency, order.timestamp.String()).Scan(&order.ID)
+		err = insert.QueryRow(order.Amount, order.Price, typeToString(order.order_type), order.Name, order.currency, order.timestamp.Format(time.RFC3339)).Scan(&order.ID)
 		if err != nil {
 			return err
 		}
