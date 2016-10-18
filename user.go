@@ -7,7 +7,12 @@ import (
 	_ "github.com/lib/pq"
 	"log"
 	"strconv"
+	"time"
+	"gopkg.in/redis.v4"
+	"net/url"
 )
+
+const sessionTimeout = 10*time.Minute
 
 type User struct {
 	id              int64
@@ -15,6 +20,31 @@ type User struct {
 	email           string
 	password        string
 	activationToken string
+	sessionId       string
+}
+
+func addSession(user *User) {
+	randBytes, err := scrypt.GenerateRandomBytes(64)
+	if err != nil {
+		panic(err)
+	}
+	sessionId := url.QueryEscape(string(randBytes))
+	err = rd.Set("session:" + sessionId, user.username, sessionTimeout).Err()
+	if err != nil {
+		panic(err)
+	}
+	user.sessionId = sessionId
+}
+
+func getSession(sessionId string) string {
+	session, err := rd.Get("session:" + sessionId).Result()
+	if err == redis.Nil {
+		return ""
+	} else if err != nil {
+		panic(err)
+	} else {
+		return session
+	}
 }
 
 func findUserByEmail(email string) *User {
@@ -64,6 +94,7 @@ func authenticateByPassword(email string, password string) (*User) {
 		return nil
 	}
 	usr.email = email
+	addSession(&usr)
 	return &usr
 }
 

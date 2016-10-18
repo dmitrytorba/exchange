@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"time"
 	"github.com/gorilla/mux"
 )
 
@@ -15,6 +16,14 @@ func login(w http.ResponseWriter, r *http.Request) {
 	if usr == nil {
 		w.WriteHeader(401)
 	} else {
+		expire := time.Now().Add(10*time.Minute)
+		cookie := http.Cookie{
+			Name: "exchange-session",
+			Value: usr.sessionId,
+			HttpOnly: true,
+			Expires: expire,
+		}
+		http.SetCookie(w, &cookie)  
 		fmt.Fprintln(w, usr.email)
 	}
 }
