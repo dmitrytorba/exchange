@@ -3,6 +3,7 @@ import { showModal } from './modal.js'
 function buildSignupHtml() {
     var html = `
         <h1>Create an account</h1>
+        <div class="error-feedback"></div>
         <label for="username">Username</label>
 			     <input type="text" class="full username-field" name="username"/>
 			     <label for="password">Password</label>
@@ -12,9 +13,9 @@ function buildSignupHtml() {
     return html;
 }
 
-function onSignup(callback) {
-    var $usernameField = $('.username-field')
-    var $passwordField = $('.password-field')
+function onSignup(modal) {
+    var $usernameField = $('.username-field', modal.$el)
+    var $passwordField = $('.password-field', modal.$el)
     var username = $usernameField.val()
     var password = $passwordField.val()
     // TODO: validation
@@ -22,8 +23,13 @@ function onSignup(callback) {
     $.post('/signup', {
         username: username,
         password: password
-    }, callback)
-           
+    })
+    .done(() => {
+        modal.closeModal()
+    })
+    .fail(() => {
+        $('.error-feedback', modal.$el).text('Signup failed')
+    })       
 }
 
 
@@ -31,5 +37,6 @@ export function showSignup() {
     var modal = showModal({
         content: buildSignupHtml()
     });
-    $('input.signup-button', modal.$el).click(onSignup)
+    $('input.signup-button', modal.$el).click(event =>
+                                              onSignup(modal))
 }
