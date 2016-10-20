@@ -18,7 +18,7 @@ func login(w http.ResponseWriter, r *http.Request) {
 	} else {
 		expire := time.Now().Add(10*time.Minute)
 		cookie := http.Cookie{
-			Name: "exchange-session",
+			Name: "dx45sp",
 			Value: usr.sessionId,
 			HttpOnly: true,
 			Expires: expire,

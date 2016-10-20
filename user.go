@@ -10,6 +10,7 @@ import (
 	"time"
 	"gopkg.in/redis.v4"
 	"net/url"
+	"net/http"
 )
 
 const sessionTimeout = 10*time.Minute
@@ -23,27 +24,43 @@ type User struct {
 	sessionId       string
 }
 
-func addSession(user *User) {
-	randBytes, err := scrypt.GenerateRandomBytes(64)
+func getUserFromCookie(r *http.Request) *User {
+	cookie, err := r.Cookie("dx45sp")
 	if err != nil {
-		panic(err)
+		return nil
 	}
-	sessionId := url.QueryEscape(string(randBytes))
-	err = rd.Set("session:" + sessionId, user.username, sessionTimeout).Err()
+	sessionId, err := url.QueryUnescape(cookie.Value)
 	if err != nil {
-		panic(err)
+		return nil
 	}
-	user.sessionId = sessionId
+	return getSessionUser(sessionId)
 }
 
-func getSession(sessionId string) string {
+func addSession(user *User) {
+	randBytes, err := scrypt.GenerateRandomBytes(32)
+	if err != nil {
+		panic(err)
+	}
+	sessionId := string(randBytes)
+	// TODO: store more than a name
+	err = rd.Set("session:" + sessionId, user.email, sessionTimeout).Err()
+	if err != nil {
+		panic(err)
+	}
+user.sessionId = url.QueryEscape(sessionId)
+}
+
+func getSessionUser(sessionId string) *User {
 	session, err := rd.Get("session:" + sessionId).Result()
 	if err == redis.Nil {
-		return ""
+		return nil
 	} else if err != nil {
 		panic(err)
 	} else {
-		return session
+		var usr User
+		// TODO: store more than a name
+		usr.username = session
+		return &usr
 	}
 }
 

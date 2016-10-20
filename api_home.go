@@ -9,10 +9,17 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 	buys := ob.array(BUY)
 	sells := ob.array(SELL)
 
-	executeTemplate(w, "home", 200, map[string]interface{}{
+	data := map[string]interface{}{
 		"Currencies": exch.currencies,
 		"Sells":      sells,
 		"Buys":       buys,
 		"Executions": ob.history.array(),
-	})
+	}
+	
+	usr := getUserFromCookie(r)
+	if usr != nil {
+		data["Username"] = usr.username
+	}
+	
+	executeTemplate(w, "home", 200, data)
 }

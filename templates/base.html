@@ -17,13 +17,16 @@
 			{{end}}
 
 			<div class="nav clearfix">
+     {{if .Username}}
+     <a href="/settings" class="account-button">{{ .Username }}</a>
+     {{else}}
 				 <a href="#login" class="login-button">
        login
      </a>
 				 <a href="#signup" class="signup-button">
        signup
      </a>
-     <a href="/settings" class="account-button">settings</a>
+     {{end}}
 			</div>
 		</div>
 		{{template "body" .}}

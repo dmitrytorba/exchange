@@ -13,6 +13,14 @@ function buildLoginHtml() {
     return html;
 }
 
+function buildNav(username) {
+    return `
+        <a href="/settings" class="account-button">
+            ${username}
+        </a>   
+    `
+}
+
 function onLogin(modal) {
     var $usernameField = $('.username-field', modal.$el)
     var $passwordField = $('.password-field', modal.$el)
@@ -27,7 +35,7 @@ function onLogin(modal) {
     .done((user) => {
         $('.login-button').hide()
         $('.signup-button').hide()
-        $('.account-button').html(user)
+        $('.header .nav').html(buildNav(user))
         modal.closeModal()
     })
     .fail(() => {
