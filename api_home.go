@@ -14,12 +14,14 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		"Sells":      sells,
 		"Buys":       buys,
 		"Executions": ob.history.array(),
+		"LeadBuy":    ob.getLeadBuyPrice(),
+		"LeadSell":   ob.getLeadSellPrice(),
 	}
-	
+
 	usr := getUserFromCookie(r)
 	if usr != nil {
 		data["Username"] = usr.username
 	}
-	
+
 	executeTemplate(w, "home", 200, data)
 }
