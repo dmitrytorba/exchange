@@ -211,6 +211,10 @@ func (o *orderbook) getLeadBuyPrice() int64 {
 	o.mtx.RLock()
 	defer o.mtx.RUnlock()
 
+	if o.buys.Len() == 0 {
+		return 0
+	}
+	
 	var leader *order = o.buys.Front().Value.(*order)
 	return leader.Price
 }
@@ -219,6 +223,10 @@ func (o *orderbook) getLeadSellPrice() int64 {
 	o.mtx.RLock()
 	defer o.mtx.RUnlock()
 
+	if o.sells.Len() == 0 {
+		return 0
+	}
+	
 	var leader *order = o.sells.Front().Value.(*order)
 	return leader.Price
 }
