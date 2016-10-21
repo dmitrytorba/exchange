@@ -2,6 +2,7 @@ package main
 
 import (
 	"container/list"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ const (
 )
 
 type orderbook struct {
+	mtx     sync.RWMutex
 	buys    *list.List
 	sells   *list.List
 	history *executions
@@ -59,6 +61,9 @@ func createOrderbook() *orderbook {
 
 // array takes the linked list and spits it out as an array
 func (o *orderbook) array(order_type int) []*order {
+	o.mtx.RLock()
+	defer o.mtx.RUnlock()
+
 	var array []*order
 	if order_type == BUY {
 		array = make([]*order, o.buys.Len()) // Note .Len() is not a typo that came accidentally from JS
@@ -83,8 +88,11 @@ func (o *orderbook) array(order_type int) []*order {
 
 // match will match orders, deleting/modifying orders that get executed.
 // once matching is finished, the order, if unfilled, will be inserted into
-// the orderbook.
+// the orderbook. It is thread-safe.
 func (o *orderbook) match(initial *order) []*execution {
+	o.mtx.Lock()
+	defer o.mtx.Unlock()
+
 	// collect all the orders we executed
 	execs := make([]*execution, 0, 10)
 
@@ -171,6 +179,7 @@ func (o *orderbook) match(initial *order) []*execution {
 // insert will insert an order into an orderbook at the correct
 // position. It could be improved to avoid looping
 // through the entire list to place the last element.
+// This is not thread-safe.
 func (o *orderbook) insert(addOrder *order) {
 	// get the list the order belongs to
 	list := o.sells
@@ -196,6 +205,22 @@ func (o *orderbook) insert(addOrder *order) {
 	}
 
 	list.PushBack(addOrder)
+}
+
+func (o *orderbook) getLeadBuyPrice() int64 {
+	o.mtx.RLock()
+	defer o.mtx.RUnlock()
+
+	var leader *order = o.buys.Front().Value.(*order)
+	return leader.Price
+}
+
+func (o *orderbook) getLeadSellPrice() int64 {
+	o.mtx.RLock()
+	defer o.mtx.RUnlock()
+
+	var leader *order = o.sells.Front().Value.(*order)
+	return leader.Price
 }
 
 func (o *orderbook) readTicker() {
