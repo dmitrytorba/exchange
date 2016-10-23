@@ -38,14 +38,24 @@ func signupHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func signup(email string, password string, w http.ResponseWriter) {
-	usr := findUserByEmail(email)
 
-	if usr != nil {
-		w.WriteHeader(400)
-		fmt.Fprintln(w, "email already in use")
-	} else {
-		usr = createUser(email, password)
+	usr, err := createUser(email, password)
+
+	if err != nil {
+		switch err {
+		case ErrDuplicateEmail:
+			w.WriteHeader(400)
+			fmt.Fprintln(w, "email already in use")
+		case ErrDuplicateUsername:
+			w.WriteHeader(400)
+			fmt.Fprintln(w, "username already in use")
+		default:
+			panic(err)
+		}
 	}
+
+	fmt.Println(usr)
+
 }
 
 func verify(w http.ResponseWriter, r *http.Request) {

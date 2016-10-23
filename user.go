@@ -3,7 +3,9 @@ package main
 import (
 	"database/sql"
 	"encoding/base64"
+	"errors"
 	"github.com/elithrar/simple-scrypt"
+	"github.com/lib/pq"
 	_ "github.com/lib/pq"
 	"gopkg.in/redis.v4"
 	"log"
@@ -14,6 +16,11 @@ import (
 )
 
 const sessionTimeout = 10 * time.Minute
+
+var (
+	ErrDuplicateUsername = errors.New("username already exists in database")
+	ErrDuplicateEmail    = errors.New("email already exists in the database")
+)
 
 type User struct {
 	id              int64
@@ -140,17 +147,29 @@ func encrypt(password string) []byte {
 	return hash
 }
 
-func createUser(email string, password string) *User {
+func createUser(email string, password string) (*User, error) {
 	var usr User
 	usr.email = email
 	usr.activationToken = generateToken()
 	tokenHash := encrypt(usr.activationToken)
 	passwordHash := encrypt(password)
+
 	queryStr := "INSERT INTO users(email, password, token) VALUES($1, $2, $3) returning id"
 	err := db.QueryRow(queryStr, email, passwordHash, tokenHash).Scan(&usr.id)
 	if err != nil {
-		log.Fatal(err)
+		// check if the error is for a violation of a unique constraint like the username or email index
+		if err.(*pq.Error).Code == "23505" { // 23505 is duplicate key value violates unique constraint
+			switch err.(*pq.Error).Constraint {
+			case "unique_username":
+				return nil, ErrDuplicateUsername
+			case "unique_email":
+				return nil, ErrDuplicateEmail
+			}
+		}
+
+		// all our other sql errors
+		return nil, err
 	}
 	log.Printf("activation = %s", usr.activationToken)
-	return &usr
+	return &usr, nil
 }

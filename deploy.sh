@@ -1,4 +1,1 @@
-./build.sh
-sleep 2
-clear
-exchange
+./build.sh && clear && exchange

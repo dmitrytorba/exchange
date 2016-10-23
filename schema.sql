@@ -20,6 +20,11 @@ create table if not exists users
 grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;
 
+--don't change the following index names or else the signup code will fail
+CREATE UNIQUE INDEX unique_username on users (lower(username));
+CREATE UNIQUE INDEX unique_email on users (lower(email));
+
+
 CREATE TYPE ordertype AS ENUM ('buy', 'sell');
 CREATE TYPE currency AS ENUM ('btc', 'ltc');
 create table if not exists orders
