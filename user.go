@@ -31,16 +31,28 @@ type User struct {
 	sessionId       string
 }
 
-func getUserFromCookie(r *http.Request) *User {
+func decodeCookie(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("dx45sp")
 	if err != nil {
-		return nil
+		return "", err
 	}
-	sessionId, err := url.QueryUnescape(cookie.Value)
+	return url.QueryUnescape(cookie.Value)
+}
+
+func getUserFromCookie(r *http.Request) *User {
+	sessionId, err := decodeCookie(r)
 	if err != nil {
 		return nil
 	}
 	return getSessionUser(sessionId)
+}
+
+func logoutFromCookie(r *http.Request) {
+	sessionId, err := decodeCookie(r)
+	if err != nil {
+		return
+	}
+	removeSession(sessionId)
 }
 
 func addSession(user *User) {
@@ -68,6 +80,13 @@ func getSessionUser(sessionId string) *User {
 		// TODO: store more than a name
 		usr.username = session
 		return &usr
+	}
+}
+
+func removeSession(sessionId string) {
+	err := rd.Del("session:" + sessionId).Err()
+	if err != nil {
+		log.Printf("err removing session: %s", err)
 	}
 }
 

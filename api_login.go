@@ -81,5 +81,5 @@ func checkMe(r *http.Request) (*User, error) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "logout")
+	logoutFromCookie(r)
 }

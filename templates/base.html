@@ -18,7 +18,12 @@
 
 			<div class="nav clearfix">
      {{if .Username}}
-     <a href="/settings" class="account-button">{{ .Username }}</a>
+     <a href="/settings" class="account-button">
+       {{ .Username }}
+     </a>
+     <a href="#logout" class="logout-button">
+       logout
+     </a>
      {{else}}
 				 <a href="#login" class="login-button">
        login

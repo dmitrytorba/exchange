@@ -17,6 +17,9 @@ function buildNav(username) {
     return `
         <a href="/settings" class="account-button">
             ${username}
+        </a>
+        <a href="#logout" class="logout-button">
+            logout
         </a>   
     `
 }
@@ -43,10 +46,19 @@ function onLogin(modal) {
     })
 }
 
-export function showLogin() {
+export function login() {
     var modal = showModal({
         content: buildLoginHtml()
     });
-    $('input.login-button', modal.$el).click(event =>
-                                             onLogin(modal))
+    $('input.login-button', modal.$el).click(e =>
+                                             onLongin(modal))
+    $('input', modal.$el).keyup(e => {
+        if (e.keyCode === 13) {
+            onLogin(modal)
+        }
+    })
+}
+
+export function logout() {
+    // TODO
 }
