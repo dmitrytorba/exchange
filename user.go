@@ -5,15 +5,15 @@ import (
 	"encoding/base64"
 	"github.com/elithrar/simple-scrypt"
 	_ "github.com/lib/pq"
+	"gopkg.in/redis.v4"
 	"log"
+	"net/http"
+	"net/url"
 	"strconv"
 	"time"
-	"gopkg.in/redis.v4"
-	"net/url"
-	"net/http"
 )
 
-const sessionTimeout = 10*time.Minute
+const sessionTimeout = 10 * time.Minute
 
 type User struct {
 	id              int64
@@ -43,11 +43,11 @@ func addSession(user *User) {
 	}
 	sessionId := string(randBytes)
 	// TODO: store more than a name
-	err = rd.Set("session:" + sessionId, user.email, sessionTimeout).Err()
+	err = rd.Set("session:"+sessionId, user.email, sessionTimeout).Err()
 	if err != nil {
 		panic(err)
 	}
-user.sessionId = url.QueryEscape(sessionId)
+	user.sessionId = url.QueryEscape(sessionId)
 }
 
 func getSessionUser(sessionId string) *User {
@@ -78,41 +78,50 @@ func findUserByEmail(email string) *User {
 	return &usr
 }
 
-func authenticateByToken(idStr string, token string) *User {
+func authenticateByToken(idStr string, token string) (*User, error) {
 	usr := User{}
 	var tokenHash string
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	queryStr := "select id, email, token from users where id = $1"
 	err = db.QueryRow(queryStr, id).Scan(&usr.id, &usr.email, &tokenHash)
 	if err != nil {
-		return nil
+		// make sure we dont return an error for no users when we actually failed to find one
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
+		// normal SQL errors
+		return nil, err
 	}
 	err = scrypt.CompareHashAndPassword([]byte(tokenHash), []byte(token))
 	if err != nil {
-		return nil
+		return nil, err
 	}
-	return &usr
+	return &usr, nil
 }
 
-func authenticateByPassword(email string, password string) (*User) {
+func authenticateByPassword(email string, password string) (*User, error) {
 	var usr User
 	var tokenHash string
 	var passwordHash string
 	queryStr := "select id, password, token from users where email = $1"
 	err := db.QueryRow(queryStr, email).Scan(&usr.id, &passwordHash, &tokenHash)
 	if err != nil {
-		return nil
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 	err = scrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
 	if err != nil {
-		return nil
+		return nil, err
 	}
 	usr.email = email
 	addSession(&usr)
-	return &usr
+	return &usr, nil
 }
 
 func generateToken() string {
