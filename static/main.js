@@ -42,11 +42,17 @@ var options = {
     }
 };
 
-$("#spread-graph").plot([
-	{ label: "Buys", data: buy_graph, color: "green" },
-	{ label: "Sells", data: sell_graph, color: "red" },
-], options);
+function drawGraph(){
+	$("#spread-graph").plot([
+		{ label: "Buys", data: buy_graph, color: "green" },
+		{ label: "Sells", data: sell_graph, color: "red" },
+	], options);
+}
 
+drawGraph();
+$(window).resize(function() {
+	drawGraph();
+});
 $(".tabs span").click(function(event){
 	var parent = $(this).parent();
 	var panel = parent.parent();
