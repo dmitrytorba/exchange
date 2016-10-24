@@ -1,12 +1,12 @@
 import $ from 'jquery'
 import 'flot'
 import { login, logout } from './login.js'
-import { showSignup } from './signup.js'
+import { signup } from './signup.js'
 
 // TODO: add router instead of click events
 $('body').on('click', '.header .login-button', login);
 $('body').on('click', '.header .logout-button', logout);
-$('body').on('click', '.header .signup-button', showSignup);
+$('body').on('click', '.header .signup-button', signup);
 
 var buy_graph = [];
 var sell_graph = [];

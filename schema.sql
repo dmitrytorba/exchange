@@ -12,7 +12,7 @@ create table if not exists users
   id serial primary key,
   username varchar(32),
   email varchar(254),
-  token text,
+  email_token text,
   password text,
   btc bigint,
   ltc bigint

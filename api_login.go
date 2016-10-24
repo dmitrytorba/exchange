@@ -2,23 +2,25 @@ package main
 
 import (
 	"fmt"
-	"github.com/gorilla/mux"
 	"net/http"
 	"time"
 )
 
 func login(w http.ResponseWriter, r *http.Request) {
-	username := r.FormValue("username")
-	password := r.FormValue("password")
+	usr := User{}
+	usr.username = r.FormValue("username")
+	usr.password = r.FormValue("password")
 
-	usr, err := authenticateByPassword(username, password)
+	err := authenticateByPassword(&usr)
 	if err != nil {
-		panic(err) // fix this later
+		panic(err) // TODO: fix this later
 	}
 
-	if usr == nil {
+	// no ID means no user was found
+	if usr.id == 0 {
 		w.WriteHeader(401)
 	} else {
+		// set session cookie
 		expire := time.Now().Add(10 * time.Minute)
 		cookie := http.Cookie{
 			Name:     "dx45sp",
@@ -27,19 +29,21 @@ func login(w http.ResponseWriter, r *http.Request) {
 			Expires:  expire,
 		}
 		http.SetCookie(w, &cookie)
-		fmt.Fprintln(w, usr.email)
+		fmt.Fprintln(w, usr.username)
 	}
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) {
-	email := r.FormValue("username")
-	password := r.FormValue("password")
-	signup(email, password, w)
+	usr := User{}
+	usr.username = r.FormValue("username")
+	usr.password = r.FormValue("password")
+	usr.email = r.FormValue("email")
+	signup(&usr, w)
 }
 
-func signup(email string, password string, w http.ResponseWriter) {
-
-	usr, err := createUser(email, password)
+func signup(usr *User, w http.ResponseWriter) {
+	
+	err := createUser(usr)
 
 	if err != nil {
 		switch err {
@@ -54,30 +58,12 @@ func signup(email string, password string, w http.ResponseWriter) {
 		}
 	}
 
-	fmt.Println(usr)
-
-}
-
-func verify(w http.ResponseWriter, r *http.Request) {
-	user, err := checkMe(r)
-	if err != nil {
-		panic(err) // fix this later
-	}
-
-	if user == nil {
-		fmt.Fprintf(w, "get out")
-		return
-	}
-
-	fmt.Fprintf(w, "Hey %v!", user.username)
+	fmt.Fprintln(w, usr.username)
 }
 
 // for use at the top of authenticated requests
-func checkMe(r *http.Request) (*User, error) {
-	vars := mux.Vars(r)
-	token := vars["token"]
-	id := vars["id"]
-	return authenticateByToken(id, token)
+func checkMe(r *http.Request) *User {
+	return getUserFromCookie(r)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) {

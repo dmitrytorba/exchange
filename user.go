@@ -27,7 +27,7 @@ type User struct {
 	username        string
 	email           string
 	password        string
-	activationToken string
+	emailToken      string
 	sessionId       string
 }
 
@@ -61,8 +61,8 @@ func addSession(user *User) {
 		panic(err)
 	}
 	sessionId := string(randBytes)
-	// TODO: store more than a name
-	err = rd.Set("session:"+sessionId, user.email, sessionTimeout).Err()
+	// TODO: store more than the username
+	err = rd.Set("session:"+sessionId, user.username, sessionTimeout).Err()
 	if err != nil {
 		panic(err)
 	}
@@ -104,14 +104,14 @@ func findUserByEmail(email string) *User {
 	return &usr
 }
 
-func authenticateByToken(idStr string, token string) (*User, error) {
+func authenticateByEmailToken(idStr string, token string) (*User, error) {
 	usr := User{}
 	var tokenHash string
 	id, err := strconv.Atoi(idStr)
 	if err != nil {
 		return nil, err
 	}
-	queryStr := "select id, email, token from users where id = $1"
+	queryStr := "select id, email, email_token from users where id = $1"
 	err = db.QueryRow(queryStr, id).Scan(&usr.id, &usr.email, &tokenHash)
 	if err != nil {
 		// make sure we dont return an error for no users when we actually failed to find one
@@ -129,28 +129,25 @@ func authenticateByToken(idStr string, token string) (*User, error) {
 	return &usr, nil
 }
 
-func authenticateByPassword(email string, password string) (*User, error) {
-	var usr User
-	var tokenHash string
+func authenticateByPassword(usr *User) error {
 	var passwordHash string
-	queryStr := "select id, password, token from users where email = $1"
-	err := db.QueryRow(queryStr, email).Scan(&usr.id, &passwordHash, &tokenHash)
+	queryStr := "select id, password from users where username = $1"
+	err := db.QueryRow(queryStr, usr.username).Scan(&usr.id, &passwordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil, nil
+			return nil
 		}
-		return nil, err
+		return err
 	}
-	err = scrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password))
+	err = scrypt.CompareHashAndPassword([]byte(passwordHash), []byte(usr.password))
 	if err != nil {
-		return nil, err
+		return err
 	}
-	usr.email = email
-	addSession(&usr)
-	return &usr, nil
+	addSession(usr)
+	return nil
 }
 
-func generateToken() string {
+func generateEmailToken() string {
 	randBytes, err := scrypt.GenerateRandomBytes(32)
 	if err != nil {
 		log.Fatal(err)
@@ -166,29 +163,39 @@ func encrypt(password string) []byte {
 	return hash
 }
 
-func createUser(email string, password string) (*User, error) {
-	var usr User
-	usr.email = email
-	usr.activationToken = generateToken()
-	tokenHash := encrypt(usr.activationToken)
-	passwordHash := encrypt(password)
+func createUser(usr *User) error {
+	passwordHash := encrypt(usr.password)
+	usr.password = ""
 
-	queryStr := "INSERT INTO users(email, password, token) VALUES($1, $2, $3) returning id"
-	err := db.QueryRow(queryStr, email, passwordHash, tokenHash).Scan(&usr.id)
+ var err error
+	if usr.email != "" {
+		usr.emailToken = generateEmailToken()
+		emailTokenHash := encrypt(usr.emailToken)
+
+		queryStr := "INSERT INTO users(username, password, email, email_token) VALUES($1, $2, $3, $4) returning id"
+
+		err = db.QueryRow(queryStr, usr.username, passwordHash, usr.email, emailTokenHash).Scan(&usr.id)
+
+	} else {
+		queryStr := "INSERT INTO users(username, password) VALUES($1, $2) returning id"
+		
+		err = db.QueryRow(queryStr, usr.username, passwordHash).Scan(&usr.id)
+	}
+	
 	if err != nil {
 		// check if the error is for a violation of a unique constraint like the username or email index
 		if err.(*pq.Error).Code == "23505" { // 23505 is duplicate key value violates unique constraint
 			switch err.(*pq.Error).Constraint {
 			case "unique_username":
-				return nil, ErrDuplicateUsername
+				return ErrDuplicateUsername
 			case "unique_email":
-				return nil, ErrDuplicateEmail
+				return ErrDuplicateEmail
 			}
 		}
 
 		// all our other sql errors
-		return nil, err
+		return err
 	}
-	log.Printf("activation = %s", usr.activationToken)
-	return &usr, nil
+	log.Printf("user %s created", usr.username)
+	return nil
 }

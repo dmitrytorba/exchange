@@ -60,7 +60,7 @@ function onLogin(modal) {
 export function login() {
     var modal = showModal({
         content: buildLoginHtml()
-    });
+    })
     $('input.login-button', modal.$el).click(e =>
                                              onLogin(modal))
     $('input', modal.$el).keyup(e => {

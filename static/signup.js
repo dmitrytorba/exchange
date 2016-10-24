@@ -13,7 +13,7 @@ function buildSignupHtml() {
     return html;
 }
 
-function onSignup(modal) {
+function submitSignup(modal) {
     var $usernameField = $('.username-field', modal.$el)
     var $passwordField = $('.password-field', modal.$el)
     var username = $usernameField.val()
@@ -33,10 +33,15 @@ function onSignup(modal) {
 }
 
 
-export function showSignup() {
+export function signup() {
     var modal = showModal({
         content: buildSignupHtml()
-    });
+    })
     $('input.signup-button', modal.$el).click(event =>
-                                              onSignup(modal))
+                                              submitSignup(modal))
+    $('input', modal.$el).keyup(e => {
+        if (e.keyCode === 13) {
+            submitSignup(modal)
+        }
+    })
 }
