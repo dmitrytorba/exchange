@@ -4,9 +4,9 @@ import { login, logout } from './login.js'
 import { showSignup } from './signup.js'
 
 // TODO: add router instead of click events
-$('.login-button').click(login);
-$('.logout-button').click(logout);
-$('.signup-button').click(showSignup);
+$('body').on('click', '.header .login-button', login);
+$('body').on('click', '.header .logout-button', logout);
+$('body').on('click', '.header .signup-button', showSignup);
 
 var buy_graph = [];
 var sell_graph = [];
