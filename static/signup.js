@@ -2,13 +2,15 @@ import { showModal } from './modal.js'
 
 function buildSignupHtml() {
     var html = `
+        <form>
         <h1>Create an account</h1>
         <div class="error-feedback"></div>
         <label for="username">Username</label>
-			     <input type="text" class="full username-field" name="username"/>
+			     <input type="text" class="full username-field" name="username" autofocus="autofocus"/>
 			     <label for="password">Password</label>
 			     <input type="password" class="full password-field" name="password"/>
-        <input type="button" value="Sign Up" class="signup-button"/>
+        <input type="submit" value="Sign Up" class="signup-button"/>
+        </form>
     `
     return html;
 }
@@ -37,11 +39,6 @@ export function signup() {
     var modal = showModal({
         content: buildSignupHtml()
     })
-    $('input.signup-button', modal.$el).click(event =>
-                                              submitSignup(modal))
-    $('input', modal.$el).keyup(e => {
-        if (e.keyCode === 13) {
-            submitSignup(modal)
-        }
-    })
+    $('form', modal.$el).submit(event =>
+                                        submitSignup(modal))
 }

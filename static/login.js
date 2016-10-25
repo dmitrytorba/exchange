@@ -2,13 +2,15 @@ import { showModal } from './modal.js'
 
 function buildLoginHtml() {
     var html = `
+        <form>
         <h1>Welcome</h1>
         <div class="error-feedback"></div>
         <label for="username">Username</label>
-			     <input type="text" class="full username-field" name="username"/>
+			     <input type="text" class="full username-field" name="username" autofocus="autofocus"/>
 			     <label for="password">Password</label>
 			     <input type="password" class="full password-field" name="password"/>
-        <input type="button" value="Log In" class="login-button"/>
+        <input type="submit" value="Log In" class="login-button"/>
+        </form>
     `
     return html;
 }
@@ -55,19 +57,20 @@ function onLogin(modal) {
     .fail(() => {
         $('.error-feedback', modal.$el).text('Incorrect login.')
     })
+
+    return false
 }
 
 export function login() {
     var modal = showModal({
         content: buildLoginHtml()
     })
-    $('input.login-button', modal.$el).click(e =>
-                                             onLogin(modal))
-    $('input', modal.$el).keyup(e => {
-        if (e.keyCode === 13) {
-            onLogin(modal)
-        }
-    })
+
+    // make sure our autofocus textfields get focused
+    modal.$el.trigger('autofocus')
+
+    $('form', modal.$el).submit(e =>
+                                onLogin(modal))
 }
 
 export function logout() {
