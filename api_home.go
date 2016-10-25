@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-func homeHandler(w http.ResponseWriter, r *http.Request) {
+func homeHandler(w http.ResponseWriter, r *http.Request) error {
 	ob := exch.books["ltc"]
 	buys := ob.array(BUY)
 	sells := ob.array(SELL)
@@ -23,5 +23,5 @@ func homeHandler(w http.ResponseWriter, r *http.Request) {
 		data["Username"] = usr.username
 	}
 
-	executeTemplate(w, "home", 200, data)
+	return executeTemplate(w, "home", 200, data)
 }

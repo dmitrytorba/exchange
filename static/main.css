@@ -285,3 +285,7 @@ ul.tradebar {
     margin: 20px 0;
 }
 
+.error-page {
+	text-align: center;
+	font-size: 32px;
+}
