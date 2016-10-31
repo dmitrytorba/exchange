@@ -67,11 +67,10 @@ func signup(usr *User, w http.ResponseWriter) error {
 }
 
 // for use at the top of authenticated requests
-func checkMe(r *http.Request) *User {
+func checkMe(r *http.Request) (*User, error) {
 	return getUserFromCookie(r)
 }
 
 func logout(w http.ResponseWriter, r *http.Request) error {
-	logoutFromCookie(r)
-	return nil
+	return logoutFromCookie(r)
 }

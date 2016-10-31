@@ -23,12 +23,12 @@ var (
 )
 
 type User struct {
-	id              int64
-	username        string
-	email           string
-	password        string
-	emailToken      string
-	sessionId       string
+	id         int64
+	username   string
+	email      string
+	password   string
+	emailToken string
+	sessionId  string
 }
 
 func decodeCookie(r *http.Request) (string, error) {
@@ -39,69 +39,66 @@ func decodeCookie(r *http.Request) (string, error) {
 	return url.QueryUnescape(cookie.Value)
 }
 
-func getUserFromCookie(r *http.Request) *User {
+func getUserFromCookie(r *http.Request) (*User, error) {
 	sessionId, err := decodeCookie(r)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 	return getSessionUser(sessionId)
 }
 
-func logoutFromCookie(r *http.Request) {
+func logoutFromCookie(r *http.Request) error {
 	sessionId, err := decodeCookie(r)
 	if err != nil {
-		return
+		return err
 	}
-	removeSession(sessionId)
+	return removeSession(sessionId)
 }
 
-func addSession(user *User) {
+func addSession(user *User) error {
 	randBytes, err := scrypt.GenerateRandomBytes(32)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	sessionId := string(randBytes)
 	// TODO: store more than the username
 	err = rd.Set("session:"+sessionId, user.username, sessionTimeout).Err()
 	if err != nil {
-		panic(err)
+		return err
 	}
 	user.sessionId = url.QueryEscape(sessionId)
+	return nil
 }
 
-func getSessionUser(sessionId string) *User {
+func getSessionUser(sessionId string) (*User, error) {
 	session, err := rd.Get("session:" + sessionId).Result()
 	if err == redis.Nil {
-		return nil
+		return nil, nil
 	} else if err != nil {
-		panic(err)
+		return nil, err
 	} else {
 		var usr User
 		// TODO: store more than a name
 		usr.username = session
-		return &usr
+		return &usr, nil
 	}
 }
 
-func removeSession(sessionId string) {
-	err := rd.Del("session:" + sessionId).Err()
-	if err != nil {
-		log.Printf("err removing session: %s", err)
-	}
+func removeSession(sessionId string) error {
+	return rd.Del("session:" + sessionId).Err()
 }
 
-func findUserByEmail(email string) *User {
+func findUserByEmail(email string) (*User, error) {
 	var usr User
 	queryStr := "select id, email from users where email = $1"
 	err := db.QueryRow(queryStr, email).Scan(&usr.id, &usr.email)
 	switch {
 	case err == sql.ErrNoRows:
-		return nil
+		return nil, nil
 	case err != nil:
-		log.Fatal(err)
-	default:
+		return nil, err
 	}
-	return &usr
+	return &usr, nil
 }
 
 func authenticateByEmailToken(idStr string, token string) (*User, error) {
@@ -143,45 +140,48 @@ func authenticateByPassword(usr *User) error {
 	if err != nil {
 		return err
 	}
-	addSession(usr)
-	return nil
+	return addSession(usr)
 }
 
-func generateEmailToken() string {
+func generateEmailToken() (string, error) {
 	randBytes, err := scrypt.GenerateRandomBytes(32)
 	if err != nil {
-		log.Fatal(err)
+		return "", err
 	}
-	return base64.URLEncoding.EncodeToString(randBytes)
+	return base64.URLEncoding.EncodeToString(randBytes), nil
 }
 
-func encrypt(password string) []byte {
-	hash, err := scrypt.GenerateFromPassword([]byte(password), scrypt.DefaultParams)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return hash
+func encrypt(password string) ([]byte, error) {
+	return scrypt.GenerateFromPassword([]byte(password), scrypt.DefaultParams)
 }
 
 func createUser(usr *User) error {
-	passwordHash := encrypt(usr.password)
+	passwordHash, err := encrypt(usr.password)
 	usr.password = ""
+	if err != nil {
+		return err
+	}
 
- var err error
 	if usr.email != "" {
-		usr.emailToken = generateEmailToken()
-		emailTokenHash := encrypt(usr.emailToken)
+		usr.emailToken, err = generateEmailToken()
+		if err != nil {
+			return err
+		}
+
+		emailTokenHash, err := encrypt(usr.emailToken)
+		if err != nil {
+			return err
+		}
 
 		queryStr := "INSERT INTO users(username, password, email, email_token) VALUES($1, $2, $3, $4) returning id"
-
 		err = db.QueryRow(queryStr, usr.username, passwordHash, usr.email, emailTokenHash).Scan(&usr.id)
 
 	} else {
 		queryStr := "INSERT INTO users(username, password) VALUES($1, $2) returning id"
-		
+
 		err = db.QueryRow(queryStr, usr.username, passwordHash).Scan(&usr.id)
 	}
-	
+
 	if err != nil {
 		// check if the error is for a violation of a unique constraint like the username or email index
 		if err.(*pq.Error).Code == "23505" { // 23505 is duplicate key value violates unique constraint

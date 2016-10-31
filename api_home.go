@@ -18,7 +18,10 @@ func homeHandler(w http.ResponseWriter, r *http.Request) error {
 		"LeadSell":   ob.getLeadSellPrice(),
 	}
 
-	usr := getUserFromCookie(r)
+	usr, err := getUserFromCookie(r)
+	if err != nil {
+		return err
+	}
 	if usr != nil {
 		data["Username"] = usr.username
 	}
