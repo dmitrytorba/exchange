@@ -1,3 +1,3 @@
 #!/usr/bin/env sh
-webpack
+node_modules/webpack/bin/webpack.js
 go install
