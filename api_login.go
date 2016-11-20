@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"net/http"
-	"time"
 )
 
 func login(w http.ResponseWriter, r *http.Request) error {
@@ -11,28 +10,19 @@ func login(w http.ResponseWriter, r *http.Request) error {
 	usr.username = r.FormValue("username")
 	usr.password = r.FormValue("password")
 
+	// check the user's password
 	err := authenticateByPassword(&usr)
+	if err == ErrUserNotFound {
+		w.WriteHeader(401)
+		return nil
+	}
 	if err != nil {
 		return err
 	}
 
-	// no ID means no user was found
-	if usr.id == 0 {
-		w.WriteHeader(401)
-		return nil
-	} else {
-		// set session cookie
-		expire := time.Now().Add(10 * time.Minute)
-		cookie := http.Cookie{
-			Name:     "dx45sp",
-			Value:    usr.sessionId,
-			HttpOnly: true,
-			Expires:  expire,
-		}
-		http.SetCookie(w, &cookie)
-		fmt.Fprintln(w, usr.username)
-		return nil
-	}
+	setCookie(&usr, w)
+	fmt.Fprintln(w, usr.username)
+	return nil
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) error {
@@ -62,6 +52,7 @@ func signup(usr *User, w http.ResponseWriter) error {
 		}
 	}
 
+	setCookie(usr, w)
 	fmt.Fprintln(w, usr.username)
 	return nil
 }

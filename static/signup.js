@@ -31,7 +31,9 @@ function submitSignup(modal) {
     })
     .fail(() => {
         $('.error-feedback', modal.$el).text('Signup failed')
-    })       
+    })
+
+    return false;       
 }
 
 

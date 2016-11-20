@@ -5,6 +5,11 @@ import (
 )
 
 func homeHandler(w http.ResponseWriter, r *http.Request) error {
+	user, err := checkMe(r)
+	if err != nil {
+		return err
+	}
+
 	ob := exch.books["ltc"]
 	buys := ob.array(BUY)
 	sells := ob.array(SELL)
@@ -18,12 +23,9 @@ func homeHandler(w http.ResponseWriter, r *http.Request) error {
 		"LeadSell":   ob.getLeadSellPrice(),
 	}
 
-	usr, err := getUserFromCookie(r)
-	if err != nil {
-		return err
-	}
-	if usr != nil {
-		data["Username"] = usr.username
+	if user != nil {
+		data["Username"] = user.username
+		data["Authed"] = true
 	}
 
 	return executeTemplate(w, "home", 200, data)

@@ -20,6 +20,7 @@ const sessionTimeout = 10 * time.Minute
 var (
 	ErrDuplicateUsername = errors.New("username already exists in database")
 	ErrDuplicateEmail    = errors.New("email already exists in the database")
+	ErrUserNotFound      = errors.New("user was not found in the database")
 )
 
 type User struct {
@@ -31,6 +32,17 @@ type User struct {
 	sessionId  string
 }
 
+func setCookie(usr *User, w http.ResponseWriter) {
+	// set session cookie
+	expire := time.Now().Add(10 * time.Minute)
+	cookie := http.Cookie{
+		Name:     "dx45sp",
+		Value:    usr.sessionId,
+		HttpOnly: true,
+		Expires:  expire,
+	}
+	http.SetCookie(w, &cookie)
+}
 func decodeCookie(r *http.Request) (string, error) {
 	cookie, err := r.Cookie("dx45sp")
 	if err != nil {
@@ -55,6 +67,7 @@ func logoutFromCookie(r *http.Request) error {
 	return removeSession(sessionId)
 }
 
+// addSession will save the sesion in redis
 func addSession(user *User) error {
 	randBytes, err := scrypt.GenerateRandomBytes(32)
 	if err != nil {
@@ -70,6 +83,7 @@ func addSession(user *User) error {
 	return nil
 }
 
+// getSessionUser will retrieve the session from redis
 func getSessionUser(sessionId string) (*User, error) {
 	session, err := rd.Get("session:" + sessionId).Result()
 	if err == redis.Nil {
@@ -84,6 +98,7 @@ func getSessionUser(sessionId string) (*User, error) {
 	}
 }
 
+// removeSession will remove the session from redis
 func removeSession(sessionId string) error {
 	return rd.Del("session:" + sessionId).Err()
 }
@@ -132,7 +147,7 @@ func authenticateByPassword(usr *User) error {
 	err := db.QueryRow(queryStr, usr.username).Scan(&usr.id, &passwordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return nil
+			return ErrUserNotFound
 		}
 		return err
 	}

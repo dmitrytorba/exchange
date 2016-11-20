@@ -20,6 +20,7 @@
 	{{end}} ];
 </script>
 
+{{if .Authed}}
 <div class="container">
 	<div class="grid">
 		<div class="col-2-3 panel">
@@ -112,4 +113,32 @@
 		</div>
 	</div>
 </div>
+{{else}}
+<div class="container">
+	<div>
+		<div id="spread-graph"></div>
+    	Buy: {{.LeadBuy}} - Sell: {{.LeadSell}}
+    </div>
+
+    <div>
+    	<div class="panel">
+			<div class="tabs">
+				<span class="active" id="chat">Chat</span>
+			</div>
+			<div class="container active chat-tab">
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<p>User: Hello</p>
+				<div class="grid">
+					<div class="col-4-5"><textarea placeholder="Send a message"></textarea></div>
+					<div class="col-1-5"><input class="full" type="submit" value="Send"/></div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+{{end}}
 {{end}}
