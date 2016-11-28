@@ -27,6 +27,8 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.Handle("/bitfinex/trades/btcusd", appHandler(bitfinexTradesHandler)).Methods("GET")
+	
 	// order API
 	router.Handle("/order", appHandler(orderHandler)).Methods("POST") // creating buy/sell orders
 
