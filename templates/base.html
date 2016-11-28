@@ -6,7 +6,7 @@
 	</head>
 	<body>
 		<div class="header clearfix">
-			<span class="logo">the exchange</span>
+			<span class="logo"><a href="/">the exchange</a></span>
 
 			{{if .Currencies}}
 			<ul class="tradebar">
@@ -21,14 +21,14 @@
      <a href="/settings" class="account-button">
        {{ .Username }}
      </a>
-     <a href="#logout" class="logout-button">
+     <a href="/logout" class="logout-button">
        logout
      </a>
      {{else}}
-				 <a href="#login" class="login-button">
+				 <a href="/login" class="login-button">
        login
      </a>
-				 <a href="#signup" class="signup-button">
+				 <a href="/signup" class="signup-button">
        signup
      </a>
      {{end}}

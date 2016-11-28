@@ -7,10 +7,6 @@ import (
 	"net/http"
 )
 
-func signupPageHandler(w http.ResponseWriter, r *http.Request) {
-	executeTemplate(w, "signup", 200, nil)
-}
-
 // route level error handling implemented at described in this article
 // https://blog.golang.org/error-handling-and-go
 type appHandler func(http.ResponseWriter, *http.Request) error
@@ -31,13 +27,21 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	router.Handle("/", appHandler(homeHandler))
-	router.Handle("/settings", appHandler(settingsHandler))
-	router.Handle("/signup", appHandler(signupHandler)).Methods("POST")
-	router.Handle("/login", appHandler(login))
-	router.Handle("/logout", appHandler(logout))
+	// order API
 	router.Handle("/order", appHandler(orderHandler)).Methods("POST") // creating buy/sell orders
+
+	// login API
+	router.Handle("/login", appHandler(loginPost)).Methods("POST")
+	router.Handle("/signup", appHandler(signupPost)).Methods("POST")
+	router.Handle("/logout", appHandler(logout))
+
+	// static pages
+	router.Handle("/", appHandler(homeHandler))
+	router.Handle("/login", appHandler(loginHandler))
+	router.Handle("/signup", appHandler(signupHandler))
+	router.Handle("/settings", appHandler(settingsHandler))
 	router.Handle("/history", appHandler(historyHandler))
+
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 	log.Fatal(http.ListenAndServe(":4200", router))
 

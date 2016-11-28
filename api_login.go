@@ -1,59 +1,36 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 )
 
-func login(w http.ResponseWriter, r *http.Request) error {
-	usr := User{}
-	usr.username = r.FormValue("username")
-	usr.password = r.FormValue("password")
+func loginHandler(w http.ResponseWriter, r *http.Request) error {
+	return executeTemplate(w, "login", 200, nil)
+}
 
-	// check the user's password
-	err := authenticateByPassword(&usr)
-	if err == ErrUserNotFound {
-		w.WriteHeader(401)
-		return nil
+func loginPost(w http.ResponseWriter, r *http.Request) error {
+	username := r.FormValue("username")
+	password := r.FormValue("password")
+
+	user := &User{
+		username: username,
+		password: password,
 	}
+
+	err := authenticateByPassword(user)
 	if err != nil {
+		if err == ErrInvalidPassword || err == ErrUserNotFound {
+			return executeTemplate(w, "login", 200, map[string]interface{}{
+				"Error":    "password or username was not found",
+				"Username": username,
+			})
+		}
+
 		return err
 	}
 
-	setCookie(&usr, w)
-	fmt.Fprintln(w, usr.username)
-	return nil
-}
-
-func signupHandler(w http.ResponseWriter, r *http.Request) error {
-	usr := User{}
-	usr.username = r.FormValue("username")
-	usr.password = r.FormValue("password")
-	usr.email = r.FormValue("email")
-	return signup(&usr, w)
-}
-
-func signup(usr *User, w http.ResponseWriter) error {
-
-	err := createUser(usr)
-
-	if err != nil {
-		switch err {
-		case ErrDuplicateEmail:
-			w.WriteHeader(400)
-			fmt.Fprintln(w, "email already in use")
-			return nil
-		case ErrDuplicateUsername:
-			w.WriteHeader(400)
-			fmt.Fprintln(w, "username already in use")
-			return nil
-		default:
-			return err
-		}
-	}
-
-	setCookie(usr, w)
-	fmt.Fprintln(w, usr.username)
+	setCookie(user, w)
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return nil
 }
 
@@ -63,5 +40,6 @@ func checkMe(r *http.Request) (*User, error) {
 }
 
 func logout(w http.ResponseWriter, r *http.Request) error {
+	http.Redirect(w, r, "/", http.StatusSeeOther)
 	return logoutFromCookie(r)
 }

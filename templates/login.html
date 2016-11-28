@@ -1,0 +1,30 @@
+{{define "title"}}Exchange | Login Page{{end}}
+
+{{define "body"}}
+<div class="grid">
+  	<div class="login-panel">
+	    <form class="container" method="POST" action="/login">
+       		<h1>Log in</h1>
+
+       		{{if .Error}}
+       		<div class="error">{{.Error}}</div>
+       		{{end}}
+
+       		<label for="username">Username</label>
+       		{{if .Username}}
+			<input type="text" class="full" name="username" placeholder="username" value="{{.Username}}"/>
+       		{{else}}
+			<input type="text" class="full" name="username" placeholder="username"/>
+       		{{end}}
+
+			<label for="password">Password</label>
+		    <input type="password" class="full" name="password" placeholder="password"/>
+
+		    <div class="options">
+		   		<input type="submit" value="Log in" class="signup-button"/>
+		   		<a href="/">Go Back Home</a>
+		    </div>
+     </form>
+   </div>
+</div>
+{{end}}

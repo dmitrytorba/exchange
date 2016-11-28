@@ -21,6 +21,7 @@ var (
 	ErrDuplicateUsername = errors.New("username already exists in database")
 	ErrDuplicateEmail    = errors.New("email already exists in the database")
 	ErrUserNotFound      = errors.New("user was not found in the database")
+	ErrInvalidPassword   = errors.New("password is not valid")
 )
 
 type User struct {
@@ -56,6 +57,7 @@ func getUserFromCookie(r *http.Request) (*User, error) {
 	if err != nil {
 		return nil, nil
 	}
+
 	return getSessionUser(sessionId)
 }
 
@@ -141,10 +143,13 @@ func authenticateByEmailToken(idStr string, token string) (*User, error) {
 	return &usr, nil
 }
 
+// authenticateByPassword expects user.username and user.password
+// to be set with the username and the plaintext password. It will
+// query the database for the user and scrypt check the pass.
+// It will also set a session
 func authenticateByPassword(usr *User) error {
 	var passwordHash string
-	queryStr := "select id, password from users where username = $1"
-	err := db.QueryRow(queryStr, usr.username).Scan(&usr.id, &passwordHash)
+	err := db.QueryRow("select id, password from users where username = $1", usr.username).Scan(&usr.id, &passwordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ErrUserNotFound
@@ -153,7 +158,7 @@ func authenticateByPassword(usr *User) error {
 	}
 	err = scrypt.CompareHashAndPassword([]byte(passwordHash), []byte(usr.password))
 	if err != nil {
-		return err
+		return ErrInvalidPassword
 	}
 	return addSession(usr)
 }
@@ -170,6 +175,8 @@ func encrypt(password string) ([]byte, error) {
 	return scrypt.GenerateFromPassword([]byte(password), scrypt.DefaultParams)
 }
 
+// createUser expects a user with username and password set.
+// It will scrypt hash the password and store in database.
 func createUser(usr *User) error {
 	passwordHash, err := encrypt(usr.password)
 	usr.password = ""
@@ -212,5 +219,6 @@ func createUser(usr *User) error {
 		return err
 	}
 	log.Printf("user %s created", usr.username)
-	return nil
+	return addSession(usr)
+
 }

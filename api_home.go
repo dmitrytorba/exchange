@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -8,6 +9,12 @@ func homeHandler(w http.ResponseWriter, r *http.Request) error {
 	user, err := checkMe(r)
 	if err != nil {
 		return err
+	}
+
+	if user != nil {
+		fmt.Println("user found in cookie")
+	} else {
+		fmt.Println("user not found")
 	}
 
 	ob := exch.books["ltc"]
