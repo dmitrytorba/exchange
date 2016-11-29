@@ -10,13 +10,18 @@
        		<div class="error">{{.Error}}</div>
        		{{end}}
 
+       		{{if .Captcha}}
+       		<h2>Here is the captcha that I should implement</h2>
+       		{{end}}
+
        		<label for="username">Username</label>
        		{{if .Username}}
 			<input type="text" class="full" name="username" placeholder="username" value="{{.Username}}"/>
        		{{else}}
 			<input type="text" class="full" name="username" placeholder="username" autofocus/>
        		{{end}}
-       
+       		
+       		<p>A password should have more than 3 characters.</p>
 			<label for="password">Password</label>
 		    <input type="password" class="full" name="password" placeholder="password" autofocus />
 
