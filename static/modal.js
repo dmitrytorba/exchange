@@ -18,8 +18,6 @@ function closeModal($modal) {
 }
 
 export function showModal(config) {
-    return false;
-    
     var content = config.content || ''
     var $modal = $(buildHtml(content))    
     $('body').append($modal)
