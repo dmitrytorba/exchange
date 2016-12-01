@@ -5,9 +5,9 @@ import { signup } from './signup.js'
 import { drawPriceChart } from './charts.js'
 
 // TODO: add router instead of click events
-$('body').on('click', '.header .login-button', login);
-$('body').on('click', '.header .logout-button', logout);
-$('body').on('click', '.header .signup-button', signup);
+// $('body').on('click', '.header .login-button', login);
+// $('body').on('click', '.header .logout-button', logout);
+// $('body').on('click', '.header .signup-button', signup);
 
 // TODO: clean up
 var buy_graph = [];
@@ -68,6 +68,6 @@ $(".tabs span").click(function(event){
 	// make sure the active tab page is shown
 	  newtab.addClass("active");
     if (event.target.id === "price") {
-        drawPriceChart(".price-tab")
+        drawPriceChart("svg.price-graph")
     }
 });

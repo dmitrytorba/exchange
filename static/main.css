@@ -313,3 +313,9 @@ ul.tradebar {
 	text-align: center;
 	font-size: 32px;
 }
+
+.line, .axis {
+  fill: none;
+  stroke: white;
+  stroke-width: 1.5px;
+}

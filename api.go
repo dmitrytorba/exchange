@@ -84,7 +84,7 @@ func checkLimit(name string, r *http.Request) (int64, error) {
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
-	//router.Handle("/bitfinex/trades/btcusd", appHandler(bitfinexTradesHandler)).Methods("GET")
+	router.Handle("/bitfinex/trades/btcusd", appHandler(bitfinexTradesHandler)).Methods("GET")
 
 	// order API
 	router.Handle("/order", appHandler(orderHandler)).Methods("POST") // creating buy/sell orders
