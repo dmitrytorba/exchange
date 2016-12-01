@@ -33,14 +33,14 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // can aggressively use the API. It expects a name of the feature being rate limited (i.e. "signup")
 // the request from which it will determine an ip address to limit, an optional username,
 // and the expiration time in seconds.
-func rateLimit(name string, r *http.Request, username string, exp int) (int64, error) {
+func rateLimit(name string, r *http.Request, exp int) (int64, error) {
 	ip := r.RemoteAddr
 	if r.Header.Get("X-Forwarded-For") != "" {
 		ips := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
 		ip = ips[0]
 	}
 
-	key := fmt.Sprintf("%v:%v-%v", name, ip, username)
+	key := fmt.Sprintf("%v:%v", name, ip)
 	count, err := rd.Incr(key).Result()
 	if err != nil {
 		return 0, err
@@ -57,16 +57,14 @@ func rateLimit(name string, r *http.Request, username string, exp int) (int64, e
 }
 
 // checkLimit will return where the user is currently at on rate limits
-func checkLimit(name string, r *http.Request, username string) (int64, error) {
+func checkLimit(name string, r *http.Request) (int64, error) {
 	ip := r.RemoteAddr
 	if r.Header.Get("X-Forwarded-For") != "" { // I should double check that this actually gets the ip
 		ips := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
 		ip = ips[0]
 	}
 
-	fmt.Println("ip is", ip)
-
-	key := fmt.Sprintf("%v:%v-%v", name, ip, username)
+	key := fmt.Sprintf("%v:%v", name, ip)
 	count, err := rd.Get(key).Result()
 	if err == redis.Nil {
 		return 0, nil

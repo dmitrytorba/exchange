@@ -5,24 +5,54 @@ import (
 )
 
 func loginHandler(w http.ResponseWriter, r *http.Request) error {
-	return executeTemplate(w, "login", 200, nil)
+	count, err := checkLimit("login", r)
+	if err != nil {
+		return err
+	}
+
+	return executeTemplate(w, "login", 200, map[string]interface{}{
+		"Captcha": count > 3,
+	})
 }
 
 func loginPost(w http.ResponseWriter, r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 
+	// rate limit stuff
+	count, err := rateLimit("login", r, 60*60)
+	if err != nil {
+		return err
+	}
+	if count > 3 { // cut-off for robots
+		// process captcha
+		return executeTemplate(w, "login", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "your captcha was not correct",
+			"Captcha":  true,
+		})
+	}
+	if count > 25 { // should probably stop
+		// process captcha
+		return executeTemplate(w, "login", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "you have tried to log in too many times",
+			"Captcha":  true,
+		})
+	}
+
 	user := &User{
 		username: username,
 		password: password,
 	}
 
-	err := authenticateByPassword(user)
+	err = authenticateByPassword(user)
 	if err != nil {
 		if err == ErrInvalidPassword || err == ErrUserNotFound {
 			return executeTemplate(w, "login", 200, map[string]interface{}{
-				"Error":    "password or username was not found",
 				"Username": username,
+				"Error":    "password was inccorect or username was not found",
+				"Captcha":  count > 3,
 			})
 		}
 

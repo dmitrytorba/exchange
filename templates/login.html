@@ -9,6 +9,9 @@
        		{{if .Error}}
        		<div class="error">{{.Error}}</div>
        		{{end}}
+          {{if .Captcha}}
+          <h2>Captcha goes here!</h2>
+          {{end}}
 
        		<label for="username">Username</label>
        		{{if .Username}}

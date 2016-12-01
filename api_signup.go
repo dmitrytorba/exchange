@@ -10,32 +10,46 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 	username := r.FormValue("username")
 	password := r.FormValue("password")
 	data := map[string]interface{}{
-		"Error":    "too many accounnts have been made by this ip address, please wait",
 		"Username": username,
 	}
 
-	// rate limit stuff
-	count, err := rateLimit("signup", r, "", 60*30)
-	if count > 1 { // cut-off for robots
-		data["Captcha"] = true
-	} else if count > 2 { // the 50 cut-off is to account for public places using our site
-		data["Error"] = "too many accounnts have been made by this ip address, please wait"
-		return executeTemplate(w, "signup", 200, data)
-	}
-
 	if utf8.RuneCountInString(username) == 0 || utf8.RuneCountInString(username) > 32 {
-		data["Error"] = "usernames must be between 0 and 32 characters"
-		return executeTemplate(w, "signup", 200, data)
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "usernames must be between 0 and 32 characters",
+		})
 	}
 
 	if password != r.FormValue("password2") {
-		data["Error"] = "passwords do not match"
-		return executeTemplate(w, "signup", 200, data)
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "passwords do not match",
+		})
 	}
 
 	if utf8.RuneCountInString(password) < 3 || utf8.RuneCountInString(password) > 512 {
-		data["Error"] = "password needs to be between 3 and 512 characters"
-		return executeTemplate(w, "signup", 200, data)
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "passwords need to be between 3 and 512 characters",
+		})
+	}
+
+	// rate limit stuff
+	count, err := rateLimit("signup", r, 60*30)
+	if err != nil {
+		return err
+	}
+	if count > 5 { // cut-off for robots
+		// check captcha
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "your captcha was not correct",
+		})
+	} else if count > 50 { // the 50 cut-off is to account for public places using our site
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username": username,
+			"Error":    "too many accounts have been made by this computer, please wait",
+		})
 	}
 
 	user := &User{
@@ -59,12 +73,12 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 }
 
 func signupHandler(w http.ResponseWriter, r *http.Request) error {
-	count, err := checkLimit("signup", r, "")
+	count, err := checkLimit("signup", r)
 	if err != nil {
 		return err
 	}
 
 	return executeTemplate(w, "signup", 200, map[string]interface{}{
-		"Captcha": count > 1,
+		"Captcha": count > 5,
 	})
 }
