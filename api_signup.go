@@ -79,6 +79,6 @@ func signupHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return executeTemplate(w, "signup", 200, map[string]interface{}{
-		"Captcha": count > 5,
+		"Captcha": count >= 5,
 	})
 }

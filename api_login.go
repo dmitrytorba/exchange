@@ -52,7 +52,7 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 			return executeTemplate(w, "login", 200, map[string]interface{}{
 				"Username": username,
 				"Error":    "password was inccorect or username was not found",
-				"Captcha":  count > 3,
+				"Captcha":  count >= 3,
 			})
 		}
 
