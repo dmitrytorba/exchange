@@ -68,6 +68,6 @@ $(".tabs span").click(function(event){
 	// make sure the active tab page is shown
 	  newtab.addClass("active");
     if (event.target.id === "price") {
-        drawPriceChart("svg.price-graph")
+        drawPriceChart(".price-tab")
     }
 });

@@ -319,3 +319,7 @@ ul.tradebar {
   stroke: white;
   stroke-width: 1.5px;
 }
+
+.price-tab {
+    height: 400px;
+}

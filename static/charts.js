@@ -1,22 +1,41 @@
 import techan from 'techan'
 
+var margin = {
+    top: 20,
+    right: 20,
+    bottom: 30,
+    left: 50
+}
+
 function getTrades() {
     var url = '/bitfinex/trades/btcusd'
     return $.get(url)
 }
 
-function drawLineChart(data, selector) {
-    var svg = d3.select(selector)
-    var margin = {
-        top: 20,
-        right: 20,
-        bottom: 30,
-        left: 50
+function getSvg(selector) {
+    var $container = $(selector)
+    if ($container.has('svg').length) {
+        //TODO
+    } else {
+        var svg = d3.select(selector).append('svg')
+        svg.attr('height', $container.height())
+        svg.attr('width', $container.width())
+        svg.width = $container.width() - margin.left - margin.right
+        svg.height = $container.height() - margin.top - margin.bottom
+
+        svg.g = svg.append('g')
+        svg.g.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+
+        return svg;
     }
-    var width = +svg.attr("width") - margin.left - margin.right
-    var height = +svg.attr("height") - margin.top - margin.bottom
-    var g = svg.append("g")
-        .attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+}
+
+// line chart: https://bl.ocks.org/mbostock/3883245
+function drawLineChart(data, selector) {
+    var svg = getSvg(selector)
+    var g = svg.g
+    var width = svg.width
+    var height = svg.height
 
     var x = d3.scaleTime()
         .rangeRound([0, width]);
