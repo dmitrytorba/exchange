@@ -1,5 +1,7 @@
 import techan from 'techan'
 
+var expandIcon = 'm22,0c-12.2,0-22,9.8-22,22s9.8,22 22,22 22-9.8 22-22-9.8-22-22-22zm-1.3,19.3l-1.4,1.4c-0.4,0.4-1,0.4-1.4,0l-4-4c-0.3-0.3-0.9-0.1-0.9,0.4v1c0,0.6-0.4,1-1,1h-2c-0.6,0-1-0.4-1-1v-8c0-0.6 0.4-1 1-1h8c0.6,0 1,0.4 1,1v2c0,0.6-0.4,1-1,1h-1c-0.4,0-0.7,0.5-0.4,0.9l4,4c0.5,0.3 0.5,0.9 0.1,1.3zm14.3,14.7c0,0.6-0.4,1-1,1h-8c-0.6,0-1-0.4-1-1v-2c0-0.6 0.4-1 1-1h1c0.4,0 0.7-0.5 0.4-0.9l-4-4c-0.4-0.4-0.4-1 0-1.4l1.4-1.4c0.4-0.4 1-0.4 1.4,0l4,4c0.3,0.3 0.9,0.1 0.9-0.4v-1c0-0.6 0.4-1 1-1h2c0.6,0 1,0.4 1,1v8.1h-0.1z'
+
 var margin = {
     top: 20,
     right: 20,
@@ -24,15 +26,26 @@ function getSvg(selector) {
         svg.height = $container.height() - margin.top - margin.bottom
 
         svg.g = svg.append('g')
-        svg.g.attr("transform", "translate(" + margin.left + "," + margin.top + ")")
+        svg.g.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
 
         return svg;
     }
 }
 
+function drawToolbar(svg) {
+    var g = svg.g
+    var path = g.append('path')
+    path.attr('class', 'expand-button')
+    var top = 0
+    var left = svg.width*2 - margin.right
+    path.attr('transform', 'scale(0.5), translate(' + left + ',' + top + ')')
+    path.attr('d', expandIcon)
+}
+
 // line chart: https://bl.ocks.org/mbostock/3883245
 function drawLineChart(data, selector) {
     var svg = getSvg(selector)
+    drawToolbar(svg)
     var g = svg.g
     var width = svg.width
     var height = svg.height

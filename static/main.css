@@ -323,3 +323,8 @@ ul.tradebar {
 .price-tab {
     height: 400px;
 }
+
+.expand-button {
+    fill: white;
+    cursor: pointer;
+}
