@@ -32,6 +32,10 @@ function getSvg(selector) {
     }
 }
 
+function maximizeChart(svg) {
+    //TODO
+}
+
 function drawToolbar(svg) {
     var g = svg.g
     var path = g.append('path')
@@ -40,6 +44,9 @@ function drawToolbar(svg) {
     var left = svg.width*2 - margin.right
     path.attr('transform', 'scale(0.5), translate(' + left + ',' + top + ')')
     path.attr('d', expandIcon)
+    path.on('click', (e) => {
+        maximizeChart(svg)
+    })
 }
 
 // line chart: https://bl.ocks.org/mbostock/3883245
