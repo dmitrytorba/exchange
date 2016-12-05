@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"golang.org/x/net/http2"
 )
 
 // route level error handling implemented at described in this article
@@ -102,7 +103,12 @@ func api() (err error) {
 	router.Handle("/history", appHandler(historyHandler))
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
-	log.Fatal(http.ListenAndServe(":4200", router))
+
+	server := &http.Server{
+		Handler:      router,
+	}
+	http2.ConfigureServer(server, nil)
+	log.Fatal(server.ListenAndServeTLS("localhost.cert", "localhost.key"))
 
 	return nil
 }
