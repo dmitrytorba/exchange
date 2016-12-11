@@ -2,6 +2,7 @@
 
 {{define "body"}}
 
+<img src="/captcha/{{.CaptchaID}}.png"/>
 <script>
 	var buys = [{{range $order := .Buys}}
 		{

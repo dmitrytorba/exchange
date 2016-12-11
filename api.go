@@ -3,14 +3,15 @@ package main
 import (
 	_ "database/sql"
 	"fmt"
+	"github.com/dchest/captcha"
 	"github.com/gorilla/mux"
+	"golang.org/x/net/http2"
 	"gopkg.in/redis.v4"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 	"time"
-	"golang.org/x/net/http2"
 )
 
 // route level error handling implemented at described in this article
@@ -101,11 +102,12 @@ func api() (err error) {
 	router.Handle("/signup", appHandler(signupHandler))
 	router.Handle("/settings", appHandler(settingsHandler))
 	router.Handle("/history", appHandler(historyHandler))
+	router.PathPrefix("/captcha/").Handler(captcha.Server(400, 200))
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
 	server := &http.Server{
-		Handler:      router,
+		Handler: router,
 	}
 	http2.ConfigureServer(server, nil)
 	log.Fatal(server.ListenAndServeTLS("localhost.cert", "localhost.key"))

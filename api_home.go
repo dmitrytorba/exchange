@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/dchest/captcha"
 	"net/http"
 )
 
@@ -22,6 +23,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) error {
 	sells := ob.array(SELL)
 
 	data := map[string]interface{}{
+		"CaptchaID":  captcha.New(),
 		"Currencies": exch.currencies,
 		"Sells":      sells,
 		"Buys":       buys,
