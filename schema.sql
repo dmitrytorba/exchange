@@ -26,7 +26,7 @@ CREATE UNIQUE INDEX unique_email on users (lower(email));
 
 
 CREATE TYPE ordertype AS ENUM ('buy', 'sell');
-CREATE TYPE currency AS ENUM ('btc', 'ltc');
+CREATE TYPE currency AS ENUM ('btc', 'ltc', 'usd');
 create table if not exists orders
 (
   id serial primary key,
@@ -53,4 +53,18 @@ create table if not exists executions
 );
 grant all privileges on table executions to exchange;
 grant usage, select on sequence executions_id_seq to exchange;
+
+CREATE TYPE exchange_name AS ENUM ('bitfinex');
+
+-- https://en.wikipedia.org/wiki/Currency_pair
+-- ex: "trade @ 790 BTC/USD", BTC is base currency and USD is counter currency 
+create table if not exists history
+(
+  time_stamp timestamp primary key,
+  price bigint,
+  volume bigint,
+  base_currency currency,
+  counter_currency currency,
+  exchange exchange_name
+)
 
