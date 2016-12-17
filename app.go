@@ -20,6 +20,9 @@ func main() {
 	// make sure we get all those orders stored in the database
 	exch.loadFromDB()
 
+	// history_import.go
+	loadHistory()
+
 	startApi()
 }
 

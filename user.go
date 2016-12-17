@@ -163,6 +163,7 @@ func authenticateByPassword(usr *User) error {
 	return addSession(usr)
 }
 
+// for later, when we implement email password reset
 func generateEmailToken() (string, error) {
 	randBytes, err := scrypt.GenerateRandomBytes(32)
 	if err != nil {
