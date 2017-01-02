@@ -56,15 +56,20 @@ grant usage, select on sequence executions_id_seq to exchange;
 
 CREATE TYPE exchange_name AS ENUM ('bitfinex');
 
--- https://en.wikipedia.org/wiki/Currency_pair
--- ex: "trade @ 790 BTC/USD", BTC is base currency and USD is counter currency 
-create table if not exists history
+create table if not exists bitfinex_trades_btcusd
 (
   time_stamp timestamp primary key,
   price bigint,
-  volume bigint,
-  base_currency currency,
-  counter_currency currency,
-  exchange exchange_name
+  volume bigint
 )
 
+-- ordercount == 0 means delete 
+create table if not exists bitfinex_book_btcusd
+(
+  time_stamp timestamp primary key,
+  price bigint,
+  ordercount bigint,
+  order_type ordertype,
+  volume bigint
+)
+  
