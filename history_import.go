@@ -4,6 +4,8 @@ import(
 	"fmt"
 	"time"
 	"log"
+	"strconv"
+	"strings"
 	"github.com/gorilla/websocket"
 )
 
@@ -32,6 +34,25 @@ func getTimeRange(table string) (oldest *time.Time, newest *time.Time) {
 	return oldest, newest
 }
 
+// bitfinex book stream format:
+// "[channel_id_int,[price_float,count_int,volume_float]]"
+func parseBitfinexBookEntry(entry string) {
+	entry = strings.Replace(entry, "[", "", -1)
+	entry = strings.Replace(entry, "]", "", -1)
+	parts := strings.Split(entry, ",")
+	if len(parts) != 4 {
+		log.Printf("dont understand: %s", parts)
+	} else {
+		price, err := strconv.ParseFloat(parts[1], 64)
+		orderCount, err := strconv.Atoi(parts[2])
+		volume, err := strconv.ParseFloat(parts[3], 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
+	}
+}
+
 func logBitfinexBook() {
 	socket, _, err := websocket.DefaultDialer.Dial("wss://api2.bitfinex.com:3000/ws/2", nil)
 	if err != nil {
@@ -50,7 +71,7 @@ func logBitfinexBook() {
 				log.Println("read:", err)
 				return
 			}
-			log.Printf("recv: %s", message)
+			parseBitfinexBookEntry(string(message))
 		}
 	}()
 }
