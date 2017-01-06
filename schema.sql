@@ -61,15 +61,17 @@ create table if not exists bitfinex_trades_btcusd
   time_stamp timestamp primary key,
   price bigint,
   volume bigint
-)
+);
 
 -- ordercount == 0 means delete 
 create table if not exists bitfinex_book_btcusd
 (
   time_stamp timestamp primary key,
-  price bigint,
-  ordercount bigint,
+  price numeric,
+  order_count bigint,
   order_type ordertype,
-  volume bigint
-)
+  volume numeric
+);
+grant all privileges on table bitfinex_book_btcusd to exchange;
+
   

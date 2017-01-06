@@ -36,20 +36,37 @@ func getTimeRange(table string) (oldest *time.Time, newest *time.Time) {
 
 // bitfinex book stream format:
 // "[channel_id_int,[price_float,count_int,volume_float]]"
-func parseBitfinexBookEntry(entry string) {
+func parseBitfinexBookEntry(entry string) (float64, int, float64) {
 	entry = strings.Replace(entry, "[", "", -1)
 	entry = strings.Replace(entry, "]", "", -1)
 	parts := strings.Split(entry, ",")
 	if len(parts) != 4 {
 		log.Printf("dont understand: %s", parts)
+		return 0, 0, 0
 	} else {
 		price, err := strconv.ParseFloat(parts[1], 64)
 		orderCount, err := strconv.Atoi(parts[2])
 		volume, err := strconv.ParseFloat(parts[3], 64)
-		if err != nil {
+		if err != nil {		// this is a 'bid' order
+
 			log.Fatal(err)
 		}
-		log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
+		// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
+		return price, orderCount, volume
+	}
+}
+
+func writeBookEntry(price float64, orderCount int, volume float64) {
+	orderType := "buy"
+	if orderCount < 0 {
+		// this is an 'ask' order
+		orderType = "sell"
+		orderCount *= -1
+	} 
+	queryStr := "INSERT INTO bitfinex_book_btcusd(price, order_count, volume, order_type, time_stamp) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
+	_, err := db.Exec(queryStr, price, orderCount, volume, orderType)
+	if err != nil {
+		log.Fatal("insert err", err)
 	}
 }
 
@@ -71,7 +88,10 @@ func logBitfinexBook() {
 				log.Println("read:", err)
 				return
 			}
-			parseBitfinexBookEntry(string(message))
+			price, orderCount, volume :=parseBitfinexBookEntry(string(message))
+			if price != 0 {
+				writeBookEntry(price, orderCount, volume)
+			}
 		}
 	}()
 }
