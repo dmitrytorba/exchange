@@ -47,8 +47,7 @@ func parseBitfinexBookEntry(entry string) (float64, int, float64) {
 		price, err := strconv.ParseFloat(parts[1], 64)
 		orderCount, err := strconv.Atoi(parts[2])
 		volume, err := strconv.ParseFloat(parts[3], 64)
-		if err != nil {		// this is a 'bid' order
-
+		if err != nil {	
 			log.Fatal(err)
 		}
 		// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
@@ -58,10 +57,10 @@ func parseBitfinexBookEntry(entry string) (float64, int, float64) {
 
 func writeBookEntry(price float64, orderCount int, volume float64) {
 	orderType := "buy"
-	if orderCount < 0 {
+	if volume < 0 {
 		// this is an 'ask' order
 		orderType = "sell"
-		orderCount *= -1
+		volume *= -1
 	} 
 	queryStr := "INSERT INTO bitfinex_book_btcusd(price, order_count, volume, order_type, time_stamp) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
 	_, err := db.Exec(queryStr, price, orderCount, volume, orderType)
