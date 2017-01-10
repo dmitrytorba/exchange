@@ -1,8 +1,6 @@
 package main
 
 import(
-	"fmt"
-	"time"
 	"log"
 	"strconv"
 	"strings"
@@ -10,28 +8,46 @@ import(
 )
 
 func loadHistory() {
-	loadBitfinexTrades()
-	logBitfinexBook()
+	monitorWebsocket("book", "BTCUSD", onBookMessage)
+	monitorWebsocket("trades", "tBTCUSD", onTradeMessage)
 }
 
-func loadBitfinexTrades() {
-	fmt.Println("Checking bitfinex trades history...")
-	oldest, newest := getTimeRange("bitfinex_trades_btcusd")
-	if oldest != nil {
-		fmt.Println("found bitfinex: " + oldest.String() + " to " + newest.String())
-	} else {
-		fmt.Println("no history")
-		//TODO: dowload CSV from http://api.bitcoincharts.com/v1/csv/ 
+func onTradeMessage(message string) {
+	log.Println(message)
+}
+
+func onBookMessage(message string) {
+	price, orderCount, volume :=parseBitfinexBookEntry(message)
+	if price != 0 {
+		writeBookEntry(price, orderCount, volume)
 	}
 }
 
-func getTimeRange(table string) (oldest *time.Time, newest *time.Time) {
-	queryStr := "select max(timestamp), min(timestamp) from $1"
-	err := db.QueryRow(queryStr, table).Scan(newest, oldest)
-	if err !=nil {
-		return nil, nil
+type handlerFunction func(string)
+
+func monitorWebsocket(channel string, pair string, handler handlerFunction) {
+	socket, _, err := websocket.DefaultDialer.Dial("wss://api2.bitfinex.com:3000/ws/2", nil)
+	if err != nil {
+		log.Fatal("dial:", err)
 	}
-	return oldest, newest
+	payload :=`{"event": "subscribe", "channel": "` + channel + `", "pair": "` + pair + `"}`
+	log.Println("payload: ", payload)
+	err = socket.WriteMessage(websocket.TextMessage,  []byte(payload))
+	if err != nil {
+		log.Println("write:", err)
+		return
+	}
+	
+	go func() {
+		for {
+			_, message, err := socket.ReadMessage()
+			if err != nil {
+				log.Println("read:", err)
+				return
+			}
+			handler(string(message))
+		}
+	}()
 }
 
 // bitfinex book stream format:
@@ -41,6 +57,7 @@ func parseBitfinexBookEntry(entry string) (float64, int, float64) {
 	entry = strings.Replace(entry, "]", "", -1)
 	parts := strings.Split(entry, ",")
 	if len(parts) != 4 {
+		// TODO support heartbeat
 		log.Printf("dont understand: %s", parts)
 		return 0, 0, 0
 	} else {
@@ -67,30 +84,4 @@ func writeBookEntry(price float64, orderCount int, volume float64) {
 	if err != nil {
 		log.Fatal("insert err", err)
 	}
-}
-
-func logBitfinexBook() {
-	socket, _, err := websocket.DefaultDialer.Dial("wss://api2.bitfinex.com:3000/ws/2", nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	err = socket.WriteMessage(websocket.TextMessage, []byte(`{"event": "subscribe", "channel": "Book", "pair": "BTCUSD"}`))
-	if err != nil {
-		log.Println("write:", err)
-		return
-	}
-	
-	go func() {
-		for {
-			_, message, err := socket.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-			price, orderCount, volume :=parseBitfinexBookEntry(string(message))
-			if price != 0 {
-				writeBookEntry(price, orderCount, volume)
-			}
-		}
-	}()
 }
