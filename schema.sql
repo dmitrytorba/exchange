@@ -59,9 +59,11 @@ CREATE TYPE exchange_name AS ENUM ('bitfinex');
 create table if not exists bitfinex_trades_btcusd
 (
   time_stamp timestamp primary key,
-  price bigint,
-  volume bigint
+  time_recieved timestamp,
+  price numeric,
+  volume numeric
 );
+grant all privileges on table bitfinex_trades_btcusd to exchange;
 
 -- ordercount == 0 means delete 
 create table if not exists bitfinex_book_btcusd

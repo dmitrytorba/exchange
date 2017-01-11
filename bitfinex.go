@@ -23,9 +23,11 @@ func onTradeMessage(message string) {
 // bitfinex trade stream format:
 // "[channel_id_int, event_string, [id_int, milli_time_int, volume_float, price_float]]"
 // positive vol means 'buy', neg vol means 'sell'
+// (meaningless to specify buy/sell for a trade, prob an artifact from the orderbook) 
 // there are two events for a trade, first a low-latency event_string='te'
 // then a confirmation event_string='tu'
 func parseBitfinexTradeEntry(entry string) (float64, time.Time, float64)  {
+	log.Printf(entry)
 	entry = strings.Replace(entry, "[", "", -1)
 	entry = strings.Replace(entry, "]", "", -1)
 	parts := strings.Split(entry, ",")
@@ -53,6 +55,12 @@ func parseBitfinexTradeEntry(entry string) (float64, time.Time, float64)  {
 
 func writeTradeEntry(price float64, timestamp time.Time, volume float64) {
 	log.Printf("price: %s, time: %s, vol: %s", price, timestamp, volume)
+	queryStr := "INSERT INTO bitfinex_trades_btcusd(price, volume, time_stamp, time_recieved) VALUES($1, $2, $3, CURRENT_TIMESTAMP);"
+	_, err := db.Exec(queryStr, price, volume, timestamp)
+	if err != nil {
+		// we are inserting a trade that already exists (same timestamp)
+		return
+	}
 }
 
 func onBookMessage(message string) {
