@@ -23,6 +23,9 @@ func main() {
 	// bitfinex.go
 	connectBitfinex()
 
+	//gdax.go
+	connectGdax()
+	
 	startApi()
 }
 

@@ -7,7 +7,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/gorilla/websocket"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -74,9 +73,22 @@ func (b *bitfinexAPI) marketOrder(amount, price int) error {
 	return nil
 }
 
+const bitfinexWS = "wss://api2.bitfinex.com:3000/ws/2"
+
 func connectBitfinex() {
-	monitorWebsocket("book", "BTCUSD", onBookMessage)
-	monitorWebsocket("trades", "tBTCUSD", onTradeMessage)
+	monitorWebsocket(
+		bitfinexWS,
+		getPayload("book", "BTCUSD"),
+		onBookMessage)
+	
+	monitorWebsocket(
+		bitfinexWS,
+		getPayload("trades", "tBTCUSD"),
+		onTradeMessage)
+}
+
+func getPayload(channel string, pair string) string {
+	return 	`{"event": "subscribe", "channel": "` + channel + `", "pair": "` + pair + `"}`
 }
 
 func onTradeMessage(message string) {
@@ -134,33 +146,6 @@ func onBookMessage(message string) {
 	if price > 0 {
 		writeBookEntry(price, orderCount, volume)
 	}
-}
-
-type handlerFunction func(string)
-
-func monitorWebsocket(channel string, pair string, handler handlerFunction) {
-	socket, _, err := websocket.DefaultDialer.Dial("wss://api2.bitfinex.com:3000/ws/2", nil)
-	if err != nil {
-		log.Fatal("dial:", err)
-	}
-	payload := `{"event": "subscribe", "channel": "` + channel + `", "pair": "` + pair + `"}`
-	log.Println("payload: ", payload)
-	err = socket.WriteMessage(websocket.TextMessage, []byte(payload))
-	if err != nil {
-		log.Println("write:", err)
-		return
-	}
-
-	go func() {
-		for {
-			_, message, err := socket.ReadMessage()
-			if err != nil {
-				log.Println("read:", err)
-				return
-			}
-			handler(string(message))
-		}
-	}()
 }
 
 // bitfinex book stream format:
