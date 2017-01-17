@@ -29,8 +29,8 @@ type GdaxMsg struct {
 	Time string
 	OrderType string
 	Funds string
-	MakerOrderId string
-	TakerOrderId string
+	MakerOrderId string `json:"maker_order_id"`
+	TakerOrderId string `json:"taker_order_id"`
 	NewSize string `json:"new_size"`
 	OldSize string
 	NewFunds string
@@ -50,7 +50,7 @@ func onGdaxEvent(messageStr string) {
 	case "recieved":
 		writeGdaxOrder(msg)
 	case "match":
-		writeGdaxTrade(msg)
+		writeGdaxTrade(msg.MakerOrderId, msg.Price, msg.Size, msg.Time)
 	case "open":
 		writeGdaxBook(msg.OrderId, msg.Price, msg.RemainingSize, msg.Side, msg.Time)
 	case "change":
@@ -73,9 +73,21 @@ func onGdaxEvent(messageStr string) {
 }
 
 func writeGdaxOrder(message GdaxMsg) {
+	//TODO?
 }
 
-func writeGdaxTrade(message GdaxMsg) {
+func writeGdaxTrade(orderId string, priceStr string, volumeStr string, timeStr string) {
+	price, err := strconv.ParseFloat(priceStr, 64)
+	volume, err := strconv.ParseFloat(volumeStr, 64)
+	timestamp, err := time.Parse(time.RFC3339Nano, timeStr) 
+	if err != nil {
+		log.Fatal("err: ", err)
+	}
+	queryStr := "INSERT INTO gdax_trades_btcusd(order_id, price, volume, time_stamp, time_recieved) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
+	_, err = db.Exec(queryStr, orderId, price, volume, timestamp)
+	if err != nil {
+		log.Fatal("err: ", err)
+	}
 }
 
 func writeGdaxBook(orderId string, priceStr string, volumeStr string, side string, timeStr string) {

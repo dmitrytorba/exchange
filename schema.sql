@@ -86,12 +86,14 @@ create table if not exists gdax_book_btcusd
   volume numeric
 );
 grant all privileges on table gdax_book_btcusd to exchange;
-  
+
+-- order_id is the taker order_id from gdax_book
 create table if not exists gdax_trades_btcusd
 (
-  time_stamp timestamp primary key,
-  time_recieved timestamp,
+  time_recieved timestamp primary key,
+  time_stamp timestamp,
   price numeric,
-  volume numeric
+  volume numeric,
+  order_id uuid
 );
 grant all privileges on table gdax_trades_btcusd to exchange;
