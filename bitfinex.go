@@ -132,13 +132,14 @@ func parseBitfinexTradeEntry(entry string) (float64, time.Time, float64) {
 }
 
 func writeTradeEntry(price float64, timestamp time.Time, volume float64) {
-	log.Printf("price: %s, time: %s, vol: %s", price, timestamp, volume)
+	//log.Printf("price: %s, time: %s, vol: %s", price, timestamp, volume)
 	queryStr := "INSERT INTO bitfinex_trades_btcusd(price, volume, time_stamp, time_recieved) VALUES($1, $2, $3, CURRENT_TIMESTAMP);"
 	_, err := db.Exec(queryStr, price, volume, timestamp)
 	if err != nil {
 		// we are inserting a trade that already exists (same timestamp)
 		return
 	}
+	rd.Publish("bitfinex", "trade")
 }
 
 func onBookMessage(message string) {
@@ -182,4 +183,5 @@ func writeBookEntry(price float64, orderCount int64, volume float64) {
 	if err != nil {
 		log.Fatal("insert err", err)
 	}
+	rd.Publish("bitfinex", "book")
 }

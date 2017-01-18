@@ -13,6 +13,8 @@
        		{{if .Captcha}}
        		<h2>Here is the captcha that I should implement</h2>
        		{{end}}
+          
+          <img src="/captcha/{{.CaptchaID}}.png"/>
 
        		<label for="username">Username</label>
        		{{if .Username}}

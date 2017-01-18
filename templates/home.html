@@ -2,7 +2,6 @@
 
 {{define "body"}}
 
-<img src="/captcha/{{.CaptchaID}}.png"/>
 <script>
 	var buys = [{{range $order := .Buys}}
 		{
@@ -22,6 +21,8 @@
 </script>
 
 {{if .Authed}}
+<div class="container" id="books">
+</div>
 <div class="container">
 	<div class="grid">
 		<div class="col-2-3 panel">
