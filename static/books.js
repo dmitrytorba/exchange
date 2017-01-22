@@ -17,6 +17,6 @@ export function drawBook(selector, exchange) {
     $container.append(buildBookHtml(exchange))
     var evtSource = new EventSource("/books/" + exchange)
     evtSource.onmessage = function(e) {
-        console.log(e)
+        console.log(e.data)
     }
 }

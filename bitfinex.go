@@ -13,6 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"time"
+	"gopkg.in/redis.v4"
 )
 
 type tradeAPI interface {
@@ -76,6 +77,7 @@ func (b *bitfinexAPI) marketOrder(amount, price int) error {
 const bitfinexWS = "wss://api2.bitfinex.com:3000/ws/2"
 
 func connectBitfinex() {
+
 	monitorWebsocket(
 		bitfinexWS,
 		getPayload("book", "BTCUSD"),
@@ -171,6 +173,12 @@ func parseBitfinexBookEntry(entry string) (float64, int64, float64) {
 	}
 }
 
+type BitfinexBookEntry struct {
+	Price float64
+	OrderCount int64
+	Volume float64
+}
+
 func writeBookEntry(price float64, orderCount int64, volume float64) {
 	orderType := "buy"
 	if volume < 0 {
@@ -182,6 +190,41 @@ func writeBookEntry(price float64, orderCount int64, volume float64) {
 	_, err := db.Exec(queryStr, price, orderCount, volume, orderType)
 	if err != nil {
 		log.Fatal("insert err", err)
+	}
+
+	key := "bitfinex-bids"
+	if orderType == "sell" {
+		key = "bitfinex-asks"
+	}
+
+	priceStr := strconv.FormatFloat(price, 'f', -1, 64)
+	vals, err := rd.ZRangeByScore(key, redis.ZRangeBy{
+		Min: priceStr,
+		Max: priceStr,
+	}).Result()
+	if err != nil || len(vals) > 1 {
+		log.Fatal("redis err: ", err)
+	}
+	if len(vals) == 1 {
+		entryStr := vals[0]
+		rd.ZRem(key, entryStr)
+	} 
+	
+	if orderCount != 0 {
+		entry := BitfinexBookEntry{
+			Price: price,
+			OrderCount: orderCount,
+			Volume: volume,
+		}
+		entryStr, err := json.Marshal(entry)
+		if err != nil {
+			log.Fatal("json parse error")
+		}
+	
+		rd.ZAdd(key, redis.Z{
+			Score: price,
+			Member: entryStr,
+		})
 	}
 	rd.Publish("bitfinex", "book")
 }

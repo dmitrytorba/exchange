@@ -2,7 +2,9 @@ package main
 
 import (
 	"net/http"
-	"fmt"
+	// "fmt"
+	// "strconv"
+	// "log"
 )
 
 func bitfinexBooksHandler(w http.ResponseWriter, r *http.Request) error {
@@ -28,8 +30,10 @@ func bitfinexBooksHandler(w http.ResponseWriter, r *http.Request) error {
 			panic(err)
 		}
 
-		fmt.Fprintf(w, "data: Message: %s\n\n", msg.Payload)
-		f.Flush()
+		if msg.Payload == "spread-change" {
+			// fmt.Fprintf(w, "data: { bid: %f, ask: %f }\n\n", bitfinexBid, bitfinexAsk)
+			f.Flush()
+		}
 	}
 	return nil
 }
