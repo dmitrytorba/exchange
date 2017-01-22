@@ -81,23 +81,16 @@ func connectBitfinex() {
 	monitorWebsocket(
 		bitfinexWS,
 		getPayload("book", "BTCUSD"),
-		onBookMessage)
+		onBitfinexBookMessage)
 	
 	monitorWebsocket(
 		bitfinexWS,
 		getPayload("trades", "tBTCUSD"),
-		onTradeMessage)
+		onBitfinexTradeMessage)
 }
 
 func getPayload(channel string, pair string) string {
 	return 	`{"event": "subscribe", "channel": "` + channel + `", "pair": "` + pair + `"}`
-}
-
-func onTradeMessage(message string) {
-	price, timestamp, volume := parseBitfinexTradeEntry(message)
-	if price > 0 {
-		writeTradeEntry(price, timestamp, volume)
-	}
 }
 
 // bitfinex trade stream format:
@@ -106,34 +99,36 @@ func onTradeMessage(message string) {
 // (meaningless to specify buy/sell for a trade, prob an artifact from the orderbook)
 // there are two events for a trade, first a low-latency event_string='te'
 // then a confirmation event_string='tu'
-func parseBitfinexTradeEntry(entry string) (float64, time.Time, float64) {
-	log.Printf(entry)
+// trade channel is "25"
+func onBitfinexTradeMessage(entry string) {
 	entry = strings.Replace(entry, "[", "", -1)
 	entry = strings.Replace(entry, "]", "", -1)
 	parts := strings.Split(entry, ",")
-	if len(parts) != 6 {
-		// TODO support heartbeat?
-		log.Printf("dont understand: %s", parts)
-		return 0, time.Now(), 0
-	} else {
-		if parts[1] == `"te"` {
-			price, err := strconv.ParseFloat(parts[5], 64)
-			unixtime, err := strconv.ParseInt(parts[3], 10, 64)
-			timestamp := time.Unix(unixtime/1000, unixtime%1000)
-			volume, err := strconv.ParseFloat(parts[4], 64)
-			if err != nil {
-				log.Fatal(err)
-			}
-			// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
-			return price, timestamp, volume
-		} else {
-			// TODO: handle confirmation?
-			return 0, time.Now(), 0
+
+	if len(parts) == 2 && parts[1] == `"hb"` {
+		// TODO: heartbeat
+	} else if len(parts) == 6 && parts[1] == `"te"` {
+		price, err := strconv.ParseFloat(parts[5], 64)
+		unixtime, err := strconv.ParseInt(parts[3], 10, 64)
+		timestamp := time.Unix(unixtime/1000, unixtime%1000)
+		volume, err := strconv.ParseFloat(parts[4], 64)
+		if err != nil {
+			log.Fatal(err)
 		}
+		// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
+		if price > 0 {
+			writeBitfinexTradeEntry(price, timestamp, volume)
+		}
+	} else if len(parts) == 6 && parts[1] == `"tu"` {
+		//TODO: order confirmation 	
+	} else if len(parts) > 25 {
+		//TODO: snapshot
+	} else {
+		log.Printf("dont understand (%s): %s", len(parts), entry)
 	}
 }
 
-func writeTradeEntry(price float64, timestamp time.Time, volume float64) {
+func writeBitfinexTradeEntry(price float64, timestamp time.Time, volume float64) {
 	//log.Printf("price: %s, time: %s, vol: %s", price, timestamp, volume)
 	queryStr := "INSERT INTO bitfinex_trades_btcusd(price, volume, time_stamp, time_recieved) VALUES($1, $2, $3, CURRENT_TIMESTAMP);"
 	_, err := db.Exec(queryStr, price, volume, timestamp)
@@ -144,42 +139,63 @@ func writeTradeEntry(price float64, timestamp time.Time, volume float64) {
 	rd.Publish("bitfinex", "trade")
 }
 
-func onBookMessage(message string) {
-	price, orderCount, volume := parseBitfinexBookEntry(message)
-	if price > 0 {
-		writeBookEntry(price, orderCount, volume)
-	}
-}
-
-// bitfinex book stream format:
-// "[channel_id_int,[price_float,count_int,volume_float]]"
-func parseBitfinexBookEntry(entry string) (float64, int64, float64) {
-	entry = strings.Replace(entry, "[", "", -1)
-	entry = strings.Replace(entry, "]", "", -1)
-	parts := strings.Split(entry, ",")
-	if len(parts) != 4 {
-		// TODO support heartbeat
-		log.Printf("dont understand: %s", parts)
-		return 0, 0, 0
-	} else {
-		price, err := strconv.ParseFloat(parts[1], 64)
-		orderCount, err := strconv.ParseInt(parts[2], 10, 64)
-		volume, err := strconv.ParseFloat(parts[3], 64)
-		if err != nil {
-			log.Fatal(err)
-		}
-		// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
-		return price, orderCount, volume
-	}
-}
-
 type BitfinexBookEntry struct {
 	Price float64
 	OrderCount int64
 	Volume float64
 }
 
-func writeBookEntry(price float64, orderCount int64, volume float64) {
+// bitfinex book stream format:
+// "[channel_id_int,[price_float,count_int,volume_float]]"
+func onBitfinexBookMessage(entry string) {
+	entry = strings.Replace(entry, "[", "", -1)
+	entry = strings.Replace(entry, "]", "", -1)
+	parts := strings.Split(entry, ",")
+
+	if len(parts) == 2 && parts[1] == `"hb"` {
+		// TODO: heartbeat
+	} else if len(parts) == 4 {
+		price, err := strconv.ParseFloat(parts[1], 64)
+		orderCount, err := strconv.ParseInt(parts[2], 10, 64)
+		volume, err := strconv.ParseFloat(parts[3], 64)
+		if err != nil {
+			log.Fatal(err)
+		}
+		if price > 0 {
+			writeBitfinexBookEntry(price, orderCount, volume)
+		}
+	} else if len(parts) > 25 {
+		asks := make([]BitfinexBookEntry, 0, len(parts))
+		bids := make([]BitfinexBookEntry, 0, len(parts))
+		for i := 1; i < len(parts); i+=3 {
+			price, err := strconv.ParseFloat(parts[i], 64)
+			orderCount, err := strconv.ParseInt(parts[i+1], 10, 64)
+			volume, err := strconv.ParseFloat(parts[i+2], 64)
+			if err != nil {
+				log.Fatal(err)
+			}
+			// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
+			if volume < 0 {
+				asks = append(asks, BitfinexBookEntry{
+					Price: price,
+					OrderCount: orderCount,
+					Volume: volume,
+				})
+			} else {
+				bids = append(bids, BitfinexBookEntry{
+					Price: price,
+					OrderCount: orderCount,
+					Volume: volume,
+				})
+			}
+		}
+		resetBitfinexBook(asks, bids)
+	} else {
+		log.Printf("dont understand (%s): %s", len(parts), entry)
+	}
+}
+
+func writeBitfinexBookEntry(price float64, orderCount int64, volume float64) {
 	orderType := "buy"
 	if volume < 0 {
 		// this is an 'ask' order
@@ -227,4 +243,32 @@ func writeBookEntry(price float64, orderCount int64, volume float64) {
 		})
 	}
 	rd.Publish("bitfinex", "book")
+}
+
+func resetBitfinexBook(asks []BitfinexBookEntry, bids []BitfinexBookEntry) {
+	rd.Del("bitfinex-asks")
+	for _, ask := range asks {
+		entryStr, err := json.Marshal(ask)
+		if err != nil {
+			log.Fatal("json parse error")
+		}
+	
+		rd.ZAdd("bitfinex-asks", redis.Z{
+			Score: ask.Price,
+			Member: entryStr,
+		})
+	}
+	
+	rd.Del("bitfinex-bids")
+	for _, bid := range bids {
+		entryStr, err := json.Marshal(bid)
+		if err != nil {
+			log.Fatal("json parse error")
+		}
+	
+		rd.ZAdd("bitfinex-bids", redis.Z{
+			Score: bid.Price,
+			Member: entryStr,
+		})
+	}
 }
