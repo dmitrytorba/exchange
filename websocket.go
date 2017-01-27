@@ -23,7 +23,8 @@ func monitorWebsocket(url string, payload string, handler handlerFunction) {
 		for {
 			_, message, err := socket.ReadMessage()
 			if err != nil {
-				log.Println("read:", err)
+				log.Println(url + " disconnected: ", err)
+				monitorWebsocket(url, payload, handler)
 				return
 			}
 			handler(string(message))
