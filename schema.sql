@@ -78,11 +78,11 @@ grant all privileges on table bitfinex_book_btcusd to exchange;
 
 create table if not exists gdax_book_btcusd
 (
-  time_recieved timestamp primary key,
+  time_recieved timestamp,
   time_stamp timestamp,
   order_id uuid,
   price numeric,
-  order_type ordertype,
+  order_type varchar(32),
   volume numeric
 );
 grant all privileges on table gdax_book_btcusd to exchange;

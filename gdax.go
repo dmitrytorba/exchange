@@ -90,44 +90,48 @@ func writeGdaxTrade(orderId string, priceStr string, volumeStr string, timeStr s
 }
 
 func writeGdaxBook(msg GdaxMsg) {
-	price, err := strconv.ParseFloat(msg.Price, 64)
-	timestamp, err := time.Parse(time.RFC3339Nano, msg.Time) 
-	orderId := msg.OrderId
-	var volume float64
-	if msg.Type == "match" {
-		orderId = msg.TakerOrderId
-		volume, err = strconv.ParseFloat(msg.Size, 64)
-		volume = -volume
-	} else if msg.Type == "change" {
-		newVolume, err := strconv.ParseFloat(msg.NewSize, 64)
-		oldVolume, err := strconv.ParseFloat(msg.OldSize, 64)
-		if err != nil {
-			log.Fatal("err: ", err)
-		}
-		volume = -(oldVolume-newVolume)
-	} else {
-		volume, err = strconv.ParseFloat(msg.RemainingSize, 64)
-	}
-	if err != nil {
-		log.Fatal("writeGdaxBook err: ", err)
-	}
-	if msg.Type == "done" && msg.Reason == "canceled" {
-		volume = -volume
-	}
-	queryStr := "INSERT INTO gdax_book_btcusd(order_id, price, volume, order_type, time_stamp, time_recieved) VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)"
-	_, err = db.Exec(queryStr, orderId, price, volume, msg.Side, timestamp)
-	if err != nil {
-		log.Fatal("err: ", err)
-	}
 	if gdaxSnapshotSequence == 0 {
 		// no snapshot yet, save for later
 		gdaxEventBacklog = append(gdaxEventBacklog, msg)
 	} else {
+			price, err := strconv.ParseFloat(msg.Price, 64)
+		timestamp, err := time.Parse(time.RFC3339Nano, msg.Time) 
+		orderId := msg.OrderId
+		entryType := "bid:" + msg.Type 
+		if msg.Side == "sell" {
+			entryType = "ask:" + msg.Type 
+		}
+		var volume float64
+		if msg.Type == "match" {
+			orderId = msg.MakerOrderId
+			volume, err = strconv.ParseFloat(msg.Size, 64)
+			volume = -volume
+		} else if msg.Type == "change" {
+			newVolume, err := strconv.ParseFloat(msg.NewSize, 64)
+			oldVolume, err := strconv.ParseFloat(msg.OldSize, 64)
+			if err != nil {
+				log.Fatal("err: ", err)
+			}
+			volume = -(oldVolume-newVolume)
+		} else {
+			volume, err = strconv.ParseFloat(msg.RemainingSize, 64)
+		}
+		if err != nil {
+			log.Fatal("writeGdaxBook err: ", err)
+		}
+		if msg.Type == "done" && msg.Reason == "canceled" {
+			volume = -volume
+		}
+		queryStr := "INSERT INTO gdax_book_btcusd(order_id, price, volume, order_type, time_stamp, time_recieved) VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)"
+		_, err = db.Exec(queryStr, orderId, price, volume, entryType, timestamp)
+		if err != nil {
+			log.Fatal("err: ", err)
+		}
 		key := "gdax-asks"
 		if msg.Side == "buy" {
 			key = "gdax-bids"
 		}
-		applyGdaxBookEntry(key, price, volume)
+		applyGdaxBookEntry(key, price, volume, orderId)
 	}
 }
 
@@ -140,7 +144,7 @@ type GdaxBookSnapshot struct {
 type GdaxBookEntry struct {
 	Price float64
 	Volume float64
-	OrderCount int64
+	OrderIds []string
 }
 
 func resetGdaxBook() {
@@ -172,16 +176,7 @@ func resetGdaxBook() {
 	gdaxSnapshotSequence = snapshot.Sequence
 	for _, msg := range gdaxEventBacklog {
 		if msg.Sequence > gdaxSnapshotSequence {
-			price, err := strconv.ParseFloat(msg.Price, 64)
-			volume, err := strconv.ParseFloat(msg.RemainingSize, 64)
-			if err != nil {
-				log.Fatal("resetGdaxBook err: ", err)
-			}
-			key := "gdax-asks"
-			if msg.Side == "buy" {
-				key = "gdax-bids"
-			}
-			applyGdaxBookEntry(key, price, volume)
+			writeGdaxBook(msg)
 		}
 	}
 }
@@ -191,14 +186,24 @@ func resetGdaxBookSide(key string, msgs [][]string) {
 	for _, msg := range msgs {
 		price, err := strconv.ParseFloat(msg[0], 64)
 		volume, err := strconv.ParseFloat(msg[1], 64)
+		orderId := msg[2]
 		if err != nil {
 			log.Fatal(err)
 		}
-		applyGdaxBookEntry(key, price, volume)
+		entryType := "bid:snapshot"
+		if key == "gdax-asks" {
+			entryType = "ask:snapshot"
+		}
+		queryStr := "INSERT INTO gdax_book_btcusd(order_id, price, volume, order_type, time_recieved) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
+		_, err = db.Exec(queryStr, orderId, price, volume, entryType)
+		if err != nil {
+			log.Fatal("err: ", err)
+		}
+		applyGdaxBookEntry(key, price, volume, orderId)
 	}
 }
 
-func applyGdaxBookEntry(key string, price float64, volume float64) {
+func applyGdaxBookEntry(key string, price float64, volume float64, orderId string) {
 	priceStr := strconv.FormatFloat(price, 'f', -1, 64)
 	vals, err := rd.ZRangeByScore(key, redis.ZRangeBy{
 		Min: priceStr,
@@ -211,17 +216,13 @@ func applyGdaxBookEntry(key string, price float64, volume float64) {
 	if len(vals) == 1 {
 		json.Unmarshal([]byte(vals[0]), &entry)
 		entry.Volume += volume
-		if volume > 0 {
-			entry.OrderCount += 1
-		} else {
-			entry.OrderCount -= 1
-		}
+		entry.OrderIds = append(entry.OrderIds, orderId)
 		rd.ZRem(key, vals[0])
 	} else {
 		entry = GdaxBookEntry{
 			Price: price,
 			Volume: volume,
-			OrderCount: 1,
+			OrderIds: []string{ orderId },
 		}
 	}
 
