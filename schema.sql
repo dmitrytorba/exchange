@@ -76,6 +76,16 @@ create table if not exists bitfinex_book_btcusd
 );
 grant all privileges on table bitfinex_book_btcusd to exchange;
 
+create table if not exists bitfinex_book_ethbtc
+(
+  time_stamp timestamp primary key,
+  price numeric,
+  order_count bigint,
+  order_type ordertype,
+  volume numeric
+);
+grant all privileges on table bitfinex_book_ethbtc to exchange;
+
 create table if not exists gdax_book_btcusd
 (
   time_recieved timestamp,
