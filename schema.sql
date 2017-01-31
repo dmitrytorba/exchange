@@ -68,7 +68,7 @@ grant all privileges on table bitfinex_trades_btcusd to exchange;
 -- ordercount == 0 means delete 
 create table if not exists bitfinex_book_btcusd
 (
-  time_stamp timestamp primary key,
+  time_stamp timestamp,
   price numeric,
   order_count bigint,
   order_type ordertype,
@@ -78,7 +78,7 @@ grant all privileges on table bitfinex_book_btcusd to exchange;
 
 create table if not exists bitfinex_book_ethbtc
 (
-  time_stamp timestamp primary key,
+  time_stamp timestamp,
   price numeric,
   order_count bigint,
   order_type ordertype,
@@ -96,6 +96,17 @@ create table if not exists gdax_book_btcusd
   volume numeric
 );
 grant all privileges on table gdax_book_btcusd to exchange;
+
+create table if not exists gdax_book_ethbtc
+(
+  time_recieved timestamp,
+  time_stamp timestamp,
+  order_id uuid,
+  price numeric,
+  order_type varchar(32),
+  volume numeric
+);
+grant all privileges on table gdax_book_ethbtc to exchange;
 
 -- order_id is the taker order_id from gdax_book
 create table if not exists gdax_trades_btcusd

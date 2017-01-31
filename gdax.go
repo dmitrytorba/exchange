@@ -11,6 +11,7 @@ import (
 )
 
 const gdaxWS ="wss://ws-feed.gdax.com"
+const gdaxREST = "https://api.gdax.com"
 
 type GdaxMsg struct {
 	Type string
@@ -35,66 +36,53 @@ type GdaxMsg struct {
 	Message string
 }
 
-var gdaxSnapshotSequence int64
-var gdaxEventBacklog []GdaxMsg
+var gdaxSnapshotSequence map [string]int64
+var gdaxEventBacklog map [string][]GdaxMsg
 
 func connectGdax() {
-	gdaxSnapshotSequence = 0
-	gdaxEventBacklog = make([]GdaxMsg, 0, 100)
+	gdaxSnapshotSequence = make(map[string]int64)
+	gdaxEventBacklog = make(map[string][]GdaxMsg)
+	gdaxSnapshotSequence["btcusd"] = 0
+	gdaxEventBacklog["btcusd"] = make([]GdaxMsg, 0, 100)
 	monitorWebsocket(
 		gdaxWS,
 		`{"type":"subscribe","product_ids":["BTC-USD"]}`,
-		onGdaxEvent)
-	resetGdaxBook()
+		onGdaxEvent("btcusd"))
+	resetGdaxBook("btcusd", gdaxREST + "/products/BTC-USD/book?level=3")
 }
 
-func onGdaxEvent(messageStr string) {
-	var msg GdaxMsg
-	json.Unmarshal([]byte(messageStr), &msg)
-	// log.Printf("GDAX msg: %s", messageStr)
+func onGdaxEvent(currency string) func(string) {
+	return func(messageStr string) {
+		var msg GdaxMsg
+		json.Unmarshal([]byte(messageStr), &msg)
+		// log.Printf("GDAX msg: %s", messageStr)
 
-	if msg.Type == "error" {
-		log.Printf("GDAX error: %s", msg.Message)
-		return
-	}
-	if msg.Type == "heartbeat" {
-		log.Printf("GDAX hearbeat: %s", msg.LastTradeId)
-		return
-	}
-	if msg.Type == "received" {
-		return
-	}
-	if msg.Type == "match" {
-		writeGdaxTrade(msg.MakerOrderId, msg.Price, msg.Size, msg.Time)
-	}
-	if msg.Price != "" {
-		// when price == "" it means there is either a 'change' message for a market order
-		// or a 'done' message that baiscally duplicates this order's 'match' message
-		// (all this is noise that we can ignore)
-		writeGdaxBook(msg)
-	}
-}
-
-func writeGdaxTrade(orderId string, priceStr string, volumeStr string, timeStr string) {
-	price, err := strconv.ParseFloat(priceStr, 64)
-	volume, err := strconv.ParseFloat(volumeStr, 64)
-	timestamp, err := time.Parse(time.RFC3339Nano, timeStr) 
-	if err != nil {
-		log.Fatal("err: ", err)
-	}
-	queryStr := "INSERT INTO gdax_trades_btcusd(order_id, price, volume, time_stamp, time_recieved) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
-	_, err = db.Exec(queryStr, orderId, price, volume, timestamp)
-	if err != nil {
-		log.Fatal("err: ", err)
+		if msg.Type == "error" {
+			log.Printf("GDAX error: %s", msg.Message)
+			return
+		}
+		if msg.Type == "heartbeat" {
+			log.Printf("GDAX hearbeat: %s", msg.LastTradeId)
+			return
+		}
+		if msg.Type == "received" {
+			return
+		}
+		if msg.Price != "" {
+			// when price == "" it means there is either a 'change' message for a market order
+			// or a 'done' message that baiscally duplicates this order's 'match' message
+			// (all this is noise that we can ignore)
+			writeGdaxBook(msg, currency)
+		}
 	}
 }
 
-func writeGdaxBook(msg GdaxMsg) {
-	if gdaxSnapshotSequence == 0 {
+func writeGdaxBook(msg GdaxMsg, currency string) {
+	if gdaxSnapshotSequence[currency] == 0 {
 		// no snapshot yet, save for later
-		gdaxEventBacklog = append(gdaxEventBacklog, msg)
+		gdaxEventBacklog[currency] = append(gdaxEventBacklog[currency], msg)
 	} else {
-			price, err := strconv.ParseFloat(msg.Price, 64)
+		price, err := strconv.ParseFloat(msg.Price, 64)
 		timestamp, err := time.Parse(time.RFC3339Nano, msg.Time) 
 		orderId := msg.OrderId
 		entryType := "bid:" + msg.Type 
@@ -122,14 +110,14 @@ func writeGdaxBook(msg GdaxMsg) {
 		if msg.Type == "done" && msg.Reason == "canceled" {
 			volume = -volume
 		}
-		queryStr := "INSERT INTO gdax_book_btcusd(order_id, price, volume, order_type, time_stamp, time_recieved) VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)"
+		queryStr := "INSERT INTO gdax_book_" + currency + "(order_id, price, volume, order_type, time_stamp, time_recieved) VALUES($1, $2, $3, $4, $5, CURRENT_TIMESTAMP)"
 		_, err = db.Exec(queryStr, orderId, price, volume, entryType, timestamp)
 		if err != nil {
 			log.Fatal("err: ", err)
 		}
-		key := "gdax-asks"
+		key := currency + "-gdax-asks"
 		if msg.Side == "buy" {
-			key = "gdax-bids"
+			key = currency + "-gdax-bids"
 		}
 		applyGdaxBookEntry(key, price, volume, orderId)
 	}
@@ -147,9 +135,8 @@ type GdaxBookEntry struct {
 	OrderIds []string
 }
 
-func resetGdaxBook() {
-	url := "https://api.gdax.com"
-	req, err := http.NewRequest("GET", url+"/products/BTC-USD/book?level=3", nil)
+func resetGdaxBook(currency string, url string) {
+	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -173,10 +160,10 @@ func resetGdaxBook() {
 
 	resetGdaxBookSide("gdax-asks", snapshot.Asks)
 	resetGdaxBookSide("gdax-bids", snapshot.Bids)
-	gdaxSnapshotSequence = snapshot.Sequence
-	for _, msg := range gdaxEventBacklog {
-		if msg.Sequence > gdaxSnapshotSequence {
-			writeGdaxBook(msg)
+	gdaxSnapshotSequence[currency] = snapshot.Sequence
+	for _, msg := range gdaxEventBacklog[currency] {
+		if msg.Sequence > gdaxSnapshotSequence[currency] {
+			writeGdaxBook(msg, currency)
 		}
 	}
 }

@@ -171,8 +171,10 @@ func onBitfinexBookMessage(currency string) func(string) {
 				writeBitfinexBookEntry(price, orderCount, volume, currency)
 			}
 		} else if len(parts) > 25 {
-			asks := make([]BitfinexBookEntry, 0, len(parts))
-			bids := make([]BitfinexBookEntry, 0, len(parts))
+			// asks := make([]BitfinexBookEntry, 0, len(parts))
+			// bids := make([]BitfinexBookEntry, 0, len(parts))
+			rd.Del(currency + "-bitfinex-asks")
+			rd.Del(currency + "-bitfinex-bids")
 			for i := 1; i < len(parts); i+=3 {
 				price, err := strconv.ParseFloat(parts[i], 64)
 				orderCount, err := strconv.ParseInt(parts[i+1], 10, 64)
@@ -181,21 +183,22 @@ func onBitfinexBookMessage(currency string) func(string) {
 					log.Fatal(err)
 				}
 				// log.Printf("price: %s, count: %s, vol: %s", price, orderCount, volume)
-				if volume < 0 {
-					asks = append(asks, BitfinexBookEntry{
-						Price: price,
-						OrderCount: orderCount,
-						Volume: volume,
-					})
-				} else {
-					bids = append(bids, BitfinexBookEntry{
-						Price: price,
-						OrderCount: orderCount,
-						Volume: volume,
-					})
-				}
+				writeBitfinexBookEntry(price, orderCount, volume, currency)
+				// if volume < 0 {
+				// 	asks = append(asks, BitfinexBookEntry{
+				// 		Price: price,
+				// 		OrderCount: orderCount,
+				// 		Volume: volume,
+				// 	})
+				// } else {
+				// 	bids = append(bids, BitfinexBookEntry{
+				// 		Price: price,
+				// 		OrderCount: orderCount,
+				// 		Volume: volume,
+				// 	})
+				// }
 			}
-			resetBitfinexBook(asks, bids, currency)
+			// resetBitfinexBook(asks, bids, currency)
 		} else {
 			log.Printf("dont understand (%s): %s", len(parts), entry)
 		}
@@ -217,7 +220,7 @@ func writeBitfinexBookEntry(price float64, orderCount int64, volume float64, cur
 
 	key := currency + "-bitfinex-bids"
 	if orderType == "sell" {
-		key = currency + "bitfinex-asks"
+		key = currency + "-bitfinex-asks"
 	}
 
 	priceStr := strconv.FormatFloat(price, 'f', -1, 64)
@@ -243,7 +246,8 @@ func writeBitfinexBookEntry(price float64, orderCount int64, volume float64, cur
 		if err != nil {
 			log.Fatal("json parse error")
 		}
-	
+		// log.Printf("adding: %s, price: %s, str: %s", key, price, entryStr)
+		
 		rd.ZAdd(key, redis.Z{
 			Score: price,
 			Member: entryStr,
@@ -252,30 +256,30 @@ func writeBitfinexBookEntry(price float64, orderCount int64, volume float64, cur
 	rd.Publish("bitfinex", currency + "book")
 }
 
-func resetBitfinexBook(asks []BitfinexBookEntry, bids []BitfinexBookEntry, currency string) {
-	rd.Del(currency + "-bitfinex-asks")
-	for _, ask := range asks {
-		entryStr, err := json.Marshal(ask)
-		if err != nil {
-			log.Fatal("json parse error")
-		}
+// func resetBitfinexBook(asks []BitfinexBookEntry, bids []BitfinexBookEntry, currency string) {
+// 	rd.Del(currency + "-bitfinex-asks")
+// 	for _, ask := range asks {
+// 		entryStr, err := json.Marshal(ask)
+// 		if err != nil {
+// 			log.Fatal("json parse error")
+// 		}
 	
-		rd.ZAdd(currency + "-bitfinex-asks", redis.Z{
-			Score: ask.Price,
-			Member: entryStr,
-		})
-	}
+// 		rd.ZAdd(currency + "-bitfinex-asks", redis.Z{
+// 			Score: ask.Price,
+// 			Member: entryStr,
+// 		})
+// 	}
 	
-	rd.Del(currency + "-bitfinex-bids")
-	for _, bid := range bids {
-		entryStr, err := json.Marshal(bid)
-		if err != nil {
-			log.Fatal("json parse error")
-		}
+// 	rd.Del(currency + "-bitfinex-bids")
+// 	for _, bid := range bids {
+// 		entryStr, err := json.Marshal(bid)
+// 		if err != nil {
+// 			log.Fatal("json parse error")
+// 		}
 	
-		rd.ZAdd(currency + "-bitfinex-bids", redis.Z{
-			Score: bid.Price,
-			Member: entryStr,
-		})
-	}
-}
+// 		rd.ZAdd(currency + "-bitfinex-bids", redis.Z{
+// 			Score: bid.Price,
+// 			Member: entryStr,
+// 		})
+// 	}
+// }
