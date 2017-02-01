@@ -132,7 +132,7 @@ type GdaxBookSnapshot struct {
 type GdaxBookEntry struct {
 	Price float64
 	Volume float64
-	OrderIds []string
+	OrderIds map[string]float64
 }
 
 func resetGdaxBook(currency string, url string) {
@@ -158,8 +158,8 @@ func resetGdaxBook(currency string, url string) {
 	json.Unmarshal(body, &snapshot)
 	log.Printf("seq: %s, bids: %s asks: %s", snapshot.Sequence, len(snapshot.Bids), len(snapshot.Asks))
 
-	resetGdaxBookSide("gdax-asks", snapshot.Asks)
-	resetGdaxBookSide("gdax-bids", snapshot.Bids)
+	resetGdaxBookSide(currency, "asks", snapshot.Asks)
+	resetGdaxBookSide(currency, "bids", snapshot.Bids)
 	gdaxSnapshotSequence[currency] = snapshot.Sequence
 	for _, msg := range gdaxEventBacklog[currency] {
 		if msg.Sequence > gdaxSnapshotSequence[currency] {
@@ -168,7 +168,8 @@ func resetGdaxBook(currency string, url string) {
 	}
 }
 
-func resetGdaxBookSide(key string, msgs [][]string) {
+func resetGdaxBookSide(currency string, side string, msgs [][]string) {
+	key := currency + "-gdax-" + side
 	rd.Del(key)
 	for _, msg := range msgs {
 		price, err := strconv.ParseFloat(msg[0], 64)
@@ -177,11 +178,8 @@ func resetGdaxBookSide(key string, msgs [][]string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		entryType := "bid:snapshot"
-		if key == "gdax-asks" {
-			entryType = "ask:snapshot"
-		}
-		queryStr := "INSERT INTO gdax_book_btcusd(order_id, price, volume, order_type, time_recieved) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
+		entryType := side + ":snapshot"
+		queryStr := "INSERT INTO gdax_book_" + currency + "(order_id, price, volume, order_type, time_recieved) VALUES($1, $2, $3, $4, CURRENT_TIMESTAMP)"
 		_, err = db.Exec(queryStr, orderId, price, volume, entryType)
 		if err != nil {
 			log.Fatal("err: ", err)
@@ -203,13 +201,21 @@ func applyGdaxBookEntry(key string, price float64, volume float64, orderId strin
 	if len(vals) == 1 {
 		json.Unmarshal([]byte(vals[0]), &entry)
 		entry.Volume += volume
-		entry.OrderIds = append(entry.OrderIds, orderId)
+		if volume > 0 {
+			entry.OrderIds[orderId] = volume
+		} else if -(entry.OrderIds[orderId]) > volume {
+			entry.OrderIds[orderId] += volume
+		} else {
+			delete(entry.OrderIds, orderId)
+		}
 		rd.ZRem(key, vals[0])
 	} else {
 		entry = GdaxBookEntry{
 			Price: price,
 			Volume: volume,
-			OrderIds: []string{ orderId },
+			OrderIds: map[string]float64 {
+				orderId: volume,
+			},
 		}
 	}
 
