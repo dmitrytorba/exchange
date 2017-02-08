@@ -328,3 +328,8 @@ ul.tradebar {
     fill: white;
     cursor: pointer;
 }
+
+.captcha {
+	text-align: center;
+	background-color: white;
+}

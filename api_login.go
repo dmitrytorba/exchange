@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/dchest/captcha"
 	"net/http"
 )
 
@@ -10,8 +11,10 @@ func loginHandler(w http.ResponseWriter, r *http.Request) error {
 		return err
 	}
 
+	captcha := captcha.New()
 	return executeTemplate(w, "login", 200, map[string]interface{}{
-		"Captcha": count > 3,
+		"Captcha":   count > 3 || 1 == 1,
+		"CaptchaID": captcha,
 	})
 }
 
@@ -24,21 +27,27 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if count > 3 { // cut-off for robots
-		// process captcha
-		return executeTemplate(w, "login", 200, map[string]interface{}{
-			"Username": username,
-			"Error":    "your captcha was not correct",
-			"Captcha":  true,
-		})
-	}
 	if count > 25 { // should probably stop
 		// process captcha
 		return executeTemplate(w, "login", 200, map[string]interface{}{
 			"Username": username,
 			"Error":    "you have tried to log in too many times",
-			"Captcha":  true,
+			"Captcha":  false,
 		})
+	}
+	if count > 3 || 1 == 1 { // should probably check the captcha
+		try := r.FormValue("captcha")
+		id := r.FormValue("captchaID")
+
+		if !captcha.VerifyString(id, try) { // captcha was wrong
+			tryagain := captcha.New()
+			return executeTemplate(w, "login", 200, map[string]interface{}{
+				"Username":  username,
+				"Error":     "your captcha was not correct",
+				"Captcha":   true,
+				"CaptchaID": tryagain,
+			})
+		}
 	}
 
 	user := &User{

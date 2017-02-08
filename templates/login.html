@@ -9,8 +9,16 @@
        		{{if .Error}}
        		<div class="error">{{.Error}}</div>
        		{{end}}
+          
           {{if .Captcha}}
-          <h2>Captcha goes here!</h2>
+
+          <label for="captcha">CAPTCHA</label>
+          <div class="captcha">
+            <img src="/captcha/{{.CaptchaID}}.png"/>
+          </div>
+          <input type="hidden" name="captchaID" value="{{.CaptchaID}}">
+          <a href="/login">reload image</a> | <a href="/captcha/{{.CaptchaID}}.wav">listen to captcha</a>
+          <input type="text" class="full" name="captcha" placeholder="type the captcha">
           {{end}}
 
        		<label for="username">Username</label>

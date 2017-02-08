@@ -11,10 +11,16 @@
        		{{end}}
 
        		{{if .Captcha}}
-       		<h2>Here is the captcha that I should implement</h2>
-       		{{end}}
+
+          <label for="captcha">CAPTCHA</label>
+          <div class="captcha">
+            <img src="/captcha/{{.CaptchaID}}.png"/>
+          </div>
+          <input type="hidden" name="captchaID" value="{{.CaptchaID}}">
+          <a href="/signup">reload image</a> | <a href="/captcha/{{.CaptchaID}}.wav">listen to captcha</a>
+          <input type="text" class="full" name="captcha" placeholder="type the captcha">
+          {{end}}
           
-          <img src="/captcha/{{.CaptchaID}}.png"/>
 
        		<label for="username">Username</label>
        		{{if .Username}}

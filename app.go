@@ -20,13 +20,14 @@ func main() {
 	// make sure we get all those orders stored in the database
 	exch.loadFromDB()
 
+	go startApi()
+
 	// bitfinex.go
 	connectBitfinex()
 
 	//gdax.go
 	connectGdax()
-	
-	startApi()
+
 }
 
 func startRedis() {
