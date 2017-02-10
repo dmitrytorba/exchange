@@ -6,51 +6,33 @@ import (
 	"unicode/utf8"
 )
 
+const (
+	SIGNUPS_BEFORE_CAPTCHA = 2
+	LOCKOUT                = 50
+)
+
 func signupPost(w http.ResponseWriter, r *http.Request) error {
 
 	username := r.FormValue("username")
 	password := r.FormValue("password")
-	data := map[string]interface{}{
-		"Username": username,
-	}
-
-	// checkin basic username stuffs
-	if utf8.RuneCountInString(username) == 0 || utf8.RuneCountInString(username) > 32 {
-		return executeTemplate(w, "signup", 200, map[string]interface{}{
-			"Username": username,
-			"Error":    "usernames must be between 0 and 32 characters",
-		})
-	}
-	if password != r.FormValue("password2") {
-		return executeTemplate(w, "signup", 200, map[string]interface{}{
-			"Username": username,
-			"Error":    "passwords do not match",
-		})
-	}
-	if utf8.RuneCountInString(password) < 3 || utf8.RuneCountInString(password) > 512 {
-		return executeTemplate(w, "signup", 200, map[string]interface{}{
-			"Username": username,
-			"Error":    "passwords need to be between 3 and 512 characters",
-		})
-	}
 
 	// rate limit stuff
+	tryagain := captcha.New()
 	count, err := rateLimit("signup", r, 60*30)
 	if err != nil {
 		return err
 	}
-	if count > 50 { // the 50 cut-off is to account for public places using our site
+	if count > LOCKOUT { // the 50 cut-off is to account for public places using our site
 		return executeTemplate(w, "signup", 200, map[string]interface{}{
 			"Username": username,
 			"Error":    "too many accounts have been made by this computer, please wait",
 		})
 	}
-	if count > 1 { // cut-off for robots
+	if count > SIGNUPS_BEFORE_CAPTCHA { // cut-off for robots
 		try := r.FormValue("captcha")
 		id := r.FormValue("captchaID")
 
 		if !captcha.VerifyString(id, try) { // captcha was wrong
-			tryagain := captcha.New()
 			return executeTemplate(w, "signup", 200, map[string]interface{}{
 				"Username":  username,
 				"Error":     "your captcha was not correct",
@@ -58,6 +40,32 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 				"CaptchaID": tryagain,
 			})
 		}
+	}
+
+	// checkin basic username stuffs
+	if utf8.RuneCountInString(username) == 0 || utf8.RuneCountInString(username) > 32 {
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username":  username,
+			"Error":     "usernames must be between 0 and 32 characters",
+			"Captcha":   count > SIGNUPS_BEFORE_CAPTCHA,
+			"CaptchaID": tryagain,
+		})
+	}
+	if password != r.FormValue("password2") {
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username":  username,
+			"Error":     "passwords do not match",
+			"Captcha":   count > SIGNUPS_BEFORE_CAPTCHA,
+			"CaptchaID": tryagain,
+		})
+	}
+	if utf8.RuneCountInString(password) < 3 || utf8.RuneCountInString(password) > 512 {
+		return executeTemplate(w, "signup", 200, map[string]interface{}{
+			"Username":  username,
+			"Error":     "passwords need to be between 3 and 512 characters",
+			"Captcha":   count > SIGNUPS_BEFORE_CAPTCHA,
+			"CaptchaID": tryagain,
+		})
 	}
 
 	user := &User{
@@ -68,8 +76,10 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 	err = createUser(user)
 	if err != nil {
 		if err == ErrDuplicateUsername {
-			data["Error"] = "username has been taken"
-			return executeTemplate(w, "signup", 200, data)
+			return executeTemplate(w, "signup", 200, map[string]interface{}{
+				"Username": username,
+				"Error":    "username has been taken",
+			})
 		}
 
 		return err
@@ -87,7 +97,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return executeTemplate(w, "signup", 200, map[string]interface{}{
-		"Captcha":   count >= 1,
+		"Captcha":   count >= SIGNUPS_BEFORE_CAPTCHA,
 		"CaptchaID": captcha.New(),
 	})
 }

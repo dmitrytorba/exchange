@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+const (
+	TRIES_BEFORE_CAPTCHA = 2
+	LOCKOUT              = 25
+)
+
 func loginHandler(w http.ResponseWriter, r *http.Request) error {
 	count, err := checkLimit("login", r)
 	if err != nil {
@@ -13,7 +18,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) error {
 
 	captcha := captcha.New()
 	return executeTemplate(w, "login", 200, map[string]interface{}{
-		"Captcha":   count >= 1,
+		"Captcha":   count >= TRIES_BEFORE_CAPTCHA,
 		"CaptchaID": captcha,
 	})
 }
@@ -27,7 +32,7 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 	if err != nil {
 		return err
 	}
-	if count > 25 { // should probably stop
+	if count > LOCKOUT { // should probably stop
 		// process captcha
 		return executeTemplate(w, "login", 200, map[string]interface{}{
 			"Username": username,
@@ -35,7 +40,7 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 			"Captcha":  false,
 		})
 	}
-	if count > 1 { // should probably check the captcha
+	if count > TRIES_BEFORE_CAPTCHA { // should probably check the captcha
 		try := r.FormValue("captcha")
 		id := r.FormValue("captchaID")
 
@@ -58,10 +63,12 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 	err = authenticateByPassword(user)
 	if err != nil {
 		if err == ErrInvalidPassword || err == ErrUserNotFound {
+			tryagain := captcha.New()
 			return executeTemplate(w, "login", 200, map[string]interface{}{
-				"Username": username,
-				"Error":    "password was inccorect or username was not found",
-				"Captcha":  count >= 3,
+				"Username":  username,
+				"Error":     "password was inccorect or username was not found",
+				"Captcha":   count >= TRIES_BEFORE_CAPTCHA,
+				"CaptchaID": tryagain,
 			})
 		}
 
