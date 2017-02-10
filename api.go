@@ -8,9 +8,9 @@ import (
 	//"golang.org/x/net/http2"
 	"gopkg.in/redis.v4"
 	"log"
+	"net"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 )
 
@@ -36,11 +36,7 @@ func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // the request from which it will determine an ip address to limit, an optional username,
 // and the expiration time in seconds.
 func rateLimit(name string, r *http.Request, exp int) (int64, error) {
-	ip := r.RemoteAddr
-	if r.Header.Get("X-Forwarded-For") != "" {
-		ips := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
-		ip = ips[0]
-	}
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr) // this may not work with a production setup
 
 	key := fmt.Sprintf("%v:%v", name, ip)
 	count, err := rd.Incr(key).Result()
@@ -53,18 +49,12 @@ func rateLimit(name string, r *http.Request, exp int) (int64, error) {
 		return 0, err
 	}
 
-	fmt.Println(count)
-
 	return count, nil
 }
 
 // checkLimit will return where the user is currently at on rate limits
 func checkLimit(name string, r *http.Request) (int64, error) {
-	ip := r.RemoteAddr
-	if r.Header.Get("X-Forwarded-For") != "" { // I should double check that this actually gets the ip
-		ips := strings.Split(r.Header.Get("X-Forwarded-For"), ",")
-		ip = ips[0]
-	}
+	ip, _, _ := net.SplitHostPort(r.RemoteAddr) // this may not work with a production setup
 
 	key := fmt.Sprintf("%v:%v", name, ip)
 	count, err := rd.Get(key).Result()

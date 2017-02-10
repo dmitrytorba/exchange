@@ -45,7 +45,7 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 			"Error":    "too many accounts have been made by this computer, please wait",
 		})
 	}
-	if count > 5 || 1 == 1 { // cut-off for robots
+	if count > 1 { // cut-off for robots
 		try := r.FormValue("captcha")
 		id := r.FormValue("captchaID")
 
@@ -87,7 +87,7 @@ func signupHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	return executeTemplate(w, "signup", 200, map[string]interface{}{
-		"Captcha":   count >= 5 || 1 == 1,
+		"Captcha":   count >= 1,
 		"CaptchaID": captcha.New(),
 	})
 }

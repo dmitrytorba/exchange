@@ -13,7 +13,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) error {
 
 	captcha := captcha.New()
 	return executeTemplate(w, "login", 200, map[string]interface{}{
-		"Captcha":   count > 3 || 1 == 1,
+		"Captcha":   count >= 1,
 		"CaptchaID": captcha,
 	})
 }
@@ -35,7 +35,7 @@ func loginPost(w http.ResponseWriter, r *http.Request) error {
 			"Captcha":  false,
 		})
 	}
-	if count > 3 || 1 == 1 { // should probably check the captcha
+	if count > 1 { // should probably check the captcha
 		try := r.FormValue("captcha")
 		id := r.FormValue("captchaID")
 
