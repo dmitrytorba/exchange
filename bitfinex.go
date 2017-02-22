@@ -141,7 +141,7 @@ func writeBitfinexTradeEntry(price float64, timestamp time.Time, volume float64)
 		// we are inserting a trade that already exists (same timestamp)
 		return
 	}
-	rd.Publish("bitfinex", "trade")
+	rd.Publish("bitfinex-btcusd", "trade")
 }
 
 type BitfinexBookEntry struct {
@@ -237,6 +237,6 @@ func writeBitfinexBookEntry(price float64, orderCount int64, volume float64, cur
 			Member: entryStr,
 		})
 	}
-	rd.Publish("bitfinex", currency + "book")
+	rd.Publish("bitfinex-" + currency, "book")
 }
 
