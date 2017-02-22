@@ -28,8 +28,6 @@ func main() {
 	//gdax.go
 	connectGdax()
 	
-	startApi()
-
 	//market_maker.go
 	StartTrader()
 }

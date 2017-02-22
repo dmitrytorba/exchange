@@ -8,7 +8,7 @@ import (
 
 const (
 	SIGNUPS_BEFORE_CAPTCHA = 2
-	LOCKOUT                = 50
+	//LOCKOUT                = 50
 )
 
 func signupPost(w http.ResponseWriter, r *http.Request) error {
