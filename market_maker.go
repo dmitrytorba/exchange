@@ -12,7 +12,11 @@ var myAsk float64
 var bidDelta float64
 var askDelta float64
 
+var btc float64
+var usd float64
+
 const tick float64 = 0.1
+const targetDelta float64 = 1
 
 func round(f float64) float64 {
 	return math.Floor(f*10 + 0.5)/10
@@ -21,8 +25,10 @@ func round(f float64) float64 {
 func StartTrader() {
 	myBid = 0
 	myAsk = 0
-	bidDelta = 0
-	askDelta = 0
+	bidDelta = targetDelta
+	askDelta = targetDelta
+	btc = 1
+	usd = 1100
 	pubsub, err := rd.Subscribe("bitfinex-btcusd")
 	if err != nil {
     panic(err)
@@ -66,15 +72,15 @@ func updateOrders() {
 	// log.Printf("bitfinex book, bid: %s, ask %s", bid.Price, ask.Price)
 
 	targetBid := round(bid.Price - (bidDelta*tick))
-	if myBid == 0  || myBid < targetBid {
+	if myBid == 0  || myBid != targetBid {
 		myBid = targetBid
-		log.Printf("orders: %s ... %s", myBid, myAsk)
+		log.Printf("bid: %f (delta=%f)", myBid, bidDelta)
 	}
 
 	targetAsk := round(ask.Price + (askDelta*tick))
-	if myAsk == 0  || myAsk > targetAsk {
+	if myAsk == 0  || myAsk != targetAsk {
 		myAsk = targetAsk
-		log.Printf("orders: %s ... %s", myBid, myAsk)
+		log.Printf("ask: %f (delta=%f)", myAsk, askDelta)
 	}
 }
 
@@ -86,19 +92,35 @@ func onTrade() {
 	if err != nil {
 		log.Fatal("trade select err", err)
 	}
-	log.Printf("bitfinex trade, price: %s, vol %s", price, volume)
+	//log.Printf("bitfinex trade, price: %s, vol %s", price, volume)
 
 	if volume > 0 {
-		if price == myAsk {
-			log.Printf("my ask filled! %s", price)
-			askDelta++
+		if price >= myAsk {
+			btc -= 0.1
+			usd += 0.1*price
+			fee := 0.0001*price
+			usd -= fee
+			log.Printf("my ask filled @ %f (fee=%f) [ balance now btc=%f  usd=%f ]", myAsk, fee, btc, usd)
+			if bidDelta > targetDelta {
+				bidDelta--
+			} else {
+				askDelta++
+			}
 			myAsk=0
 			updateOrders()
 		}
 	} else {
-		if price == myBid {
-			log.Printf("my bid filled! %s", price)
-			bidDelta++
+		if price <= myBid {
+			btc += 0.1
+			usd -= 0.1*price
+			fee := 0.0001*price
+			usd -= fee
+			log.Printf("my bid filled @ %f (fee=%f) [ balance now btc=%f  usd=%f ]", myBid, fee, btc, usd)
+			if askDelta > targetDelta {
+				askDelta--
+			} else {
+				bidDelta++
+			}
 			myBid = 0
 			updateOrders()
 		}
