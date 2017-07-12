@@ -1,3 +1,9 @@
+// this was my first naive try at making an automated trader
+// the strategy was to simply match the existing highest/lowest
+// sell/buy orders on the order book plus some delta 'buffer'
+// no orders are actually placed; the code simulates a fill if
+// theres a trade executed with a matching price 
+
 package main
 
 import (

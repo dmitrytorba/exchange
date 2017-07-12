@@ -28,8 +28,6 @@ func main() {
 	//gdax.go
 	connectGdax()
 	
-	//market_maker.go
-	StartTrader()
 }
 
 func startRedis() {
