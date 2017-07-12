@@ -1,13 +1,20 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"text/template"
 )
 
 func createHandler(name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		executeTemplate(w, name, 200, nil)
+		err := executeTemplate(w, name, 200, nil)
+		if err != nil {
+			executeTemplate(w, "error", 500, map[string]interface{}{
+				"Error": err.Error(),
+			})
+			log.Println(err)
+		}
 	})
 }
 
