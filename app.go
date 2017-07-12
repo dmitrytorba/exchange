@@ -26,7 +26,6 @@ func main() {
 	//gdax.go
 	go connectGdax()
 
-	// api.go
 	startApi()
 }
 

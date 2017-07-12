@@ -18,7 +18,7 @@ import (
 // https://blog.golang.org/error-handling-and-go
 type appHandler func(http.ResponseWriter, *http.Request) error
 
-func (fn appHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (fn appHandler) ServeHTTP777(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
 		executeTemplate(w, "error", 500, map[string]interface{}{
 			"Error": err.Error(),
@@ -89,7 +89,7 @@ func api() (err error) {
 	router.Handle("/logout", appHandler(logout))
 
 	// static pages
-	router.Handle("/", appHandler(homeHandler))
+	router.Handle("/", createHandler("home"))
 	router.Handle("/login", appHandler(loginHandler))
 	router.Handle("/signup", appHandler(signupHandler))
 	router.Handle("/settings", appHandler(settingsHandler))
