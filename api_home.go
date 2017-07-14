@@ -5,7 +5,6 @@ import (
 	"github.com/dchest/captcha"
 	"net/http"
 )
-
 func homeHandler(w http.ResponseWriter, r *http.Request) error {
 	user, err := checkMe(r)
 	if err != nil {

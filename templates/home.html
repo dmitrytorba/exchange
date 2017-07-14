@@ -1,28 +1,7 @@
-{{define "title"}}Exchange | Front Page{{end}}
+{{define "title"}}Home{{end}}
 
 {{define "body"}}
 
-<script>
-	var buys = [{{range $order := .Buys}}
-		{
-			"price": {{$order.Price}},
-			"amount": {{$order.Amount}},
-			"name": "{{$order.Name}}",
-		}, 
-	{{end}} ];
-
-	var sells = [{{range $order := .Sells}}
-		{
-			"price": {{$order.Price}},
-			"amount": {{$order.Amount}},
-			"name": "{{$order.Name}}",
-		}, 
-	{{end}} ];
-</script>
-
-{{if .Authed}}
-<div class="container" id="books">
-</div>
 <div class="container">
 	<div class="grid">
 		<div class="col-2-3 panel">
@@ -95,53 +74,7 @@
 		</div>
 
 		<div class="col-3-5 panel">
-			<div class="tabs">
-				<span class="active" id="chat">Chat</span>
-				<span>Chat Settings</span>
-			</div>
-			<div class="container active chat-tab">
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<div class="grid">
-					<div class="col-4-5"><textarea placeholder="Send a message"></textarea></div>
-					<div class="col-1-5"><input class="full" type="submit" value="Send"/></div>
-				</div>
-			</div>
 		</div>
 	</div>
 </div>
-{{else}}
-<div class="container">
-	<h1>You are not logged in</h1>
-	<h2>Welcome I guess.</h2>
-	<div>
-		<div id="spread-graph"></div>
-    	Buy: {{.LeadBuy}} - Sell: {{.LeadSell}}
-    </div>
-
-    <div>
-    	<div class="panel">
-			<div class="tabs">
-				<span class="active" id="chat">Chat</span>
-			</div>
-			<div class="container active chat-tab">
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<p>User: Hello</p>
-				<div class="grid">
-					<div class="col-4-5"><textarea placeholder="Send a message"></textarea></div>
-					<div class="col-1-5"><input class="full" type="submit" value="Send"/></div>
-				</div>
-			</div>
-		</div>
-	</div>
-</div>
-{{end}}
 {{end}}

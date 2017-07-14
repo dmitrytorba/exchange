@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"github.com/dchest/captcha"
 	"github.com/gorilla/mux"
-	//"golang.org/x/net/http2"
+	"golang.org/x/net/http2"
 	"gopkg.in/redis.v4"
 	"log"
 	"net"
@@ -98,16 +98,10 @@ func api() (err error) {
 
 	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
 
-	err = http.ListenAndServe(":4200", router)
-	if err != nil {
-		log.Fatal(err)
+	server := &http.Server{
+		Handler: router,
 	}
-	/*
-		server := &http.Server{
-			Handler: router,
-		}
-		http2.ConfigureServer(server, nil)
-		log.Fatal(server.ListenAndServeTLS("localhost.cert", "localhost.key"))
-	*/
+	http2.ConfigureServer(server, nil)
+	log.Fatal(server.ListenAndServeTLS("localhost.cert", "localhost.key"))
 	return nil
 }

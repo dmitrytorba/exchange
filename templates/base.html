@@ -6,36 +6,25 @@
 	</head>
 	<body>
 		<div class="header clearfix">
-			<span class="logo"><a href="/">the exchange</a></span>
-
-			{{if .Currencies}}
-			<ul class="tradebar">
-				{{range $currency := .Currencies}}
-				<li>{{$currency}}</li>
-				{{end}}
-			</ul>
-			{{end}}
-
-			<div class="nav clearfix">
-     {{if .Username}}
-     <a href="/settings" class="account-button">
-       {{ .Username }}
-     </a>
-     <a href="/logout" class="logout-button">
-       logout
-     </a>
-     {{else}}
-				 <a href="/login" class="login-button">
-       login
-     </a>
-				 <a href="/signup" class="signup-button">
-       signup
-     </a>
-     {{end}}
-			</div>
+		    <div class="nav clearfix">
+                      {{if .Username}}
+                      <a href="/settings" class="account-button">
+                        {{ .Username }}
+                      </a>
+                      <a href="/logout" class="logout-button">
+                        logout
+                      </a>
+                      {{else}}
+		      <a href="/login" class="login-button">
+                        login
+                      </a>
+		      <a href="/signup" class="signup-button">
+                        signup
+                      </a>
+                      {{end}}
+		    </div>
 		</div>
 		{{template "body" .}}
-
 		<script src="bundle.js"></script>
 	</body>
 </html>
