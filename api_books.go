@@ -2,12 +2,12 @@ package main
 
 import (
 	"net/http"
-	// "fmt"
+	"fmt"
 	// "strconv"
 	// "log"
 )
 
-func bitfinexBooksHandler(w http.ResponseWriter, r *http.Request) error {
+func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
 	f, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
@@ -18,9 +18,11 @@ func bitfinexBooksHandler(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	
-	pubsub, err := rd.Subscribe("bitfinex")
+	fmt.Fprintf(w, "data: { exchange: 'gdax' }\n\n")
+	f.Flush()
+	pubsub, err := rd.Subscribe("gdax")
 	if err != nil {
-    panic(err)
+		panic(err)
 	}
 	defer pubsub.Close()
 
@@ -31,13 +33,13 @@ func bitfinexBooksHandler(w http.ResponseWriter, r *http.Request) error {
 		}
 
 		if msg.Payload == "spread-change" {
-			// fmt.Fprintf(w, "data: { bid: %f, ask: %f }\n\n", bitfinexBid, bitfinexAsk)
+			//fmt.Fprintf(w, "data: { bid: %f, ask: %f }\n\n", bitfinexBid, bitfinexAsk)
 			f.Flush()
 		}
 	}
 	return nil
 }
 
-func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
+func bitfinexBooksHandler( w http.ResponseWriter, r *http.Request) error {
 	return nil
 }
