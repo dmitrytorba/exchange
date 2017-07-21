@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"io/ioutil"
 	"gopkg.in/redis.v4"
+	"strings"
 )
 
 const gdaxWS ="wss://ws-feed.gdax.com"
@@ -42,14 +43,22 @@ var gdaxEventBacklog map [string][]GdaxMsg
 func connectGdax() {
 	gdaxSnapshotSequence = make(map[string]int64)
 	gdaxEventBacklog = make(map[string][]GdaxMsg)
-	gdaxSnapshotSequence["btcusd"] = 0
-	gdaxEventBacklog["btcusd"] = make([]GdaxMsg, 0, 100)
+	monitorGdaxSocket("btc", "usd")
+	monitorGdaxSocket("eth", "usd")
+	monitorGdaxSocket("eth", "btc")
+}	
+
+func monitorGdaxSocket(currencyBuy string, currencySell string) {
+	currency := currencyBuy + currencySell
+	currencyGdax := strings.ToUpper(currencyBuy) + "-" + strings.ToUpper(currencySell)
+	gdaxSnapshotSequence[currency] = 0
+	gdaxEventBacklog[currency] = make([]GdaxMsg, 0, 100)
 	monitorWebsocket(
 		gdaxWS,
-		`{"type":"subscribe","product_ids":["BTC-USD"]}`,
-		onGdaxEvent("btcusd"))
-	resetGdaxBook("btcusd", gdaxREST + "/products/BTC-USD/book?level=3")
-}
+		`{"type":"subscribe","product_ids":["` + currencyGdax + `"]}`,
+		onGdaxEvent(currency))
+	resetGdaxBook(currency, gdaxREST + "/products/" + currencyGdax + "/book?level=3")
+}	
 
 func onGdaxEvent(currency string) func(string) {
 	return func(messageStr string) {

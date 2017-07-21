@@ -3,10 +3,13 @@ import 'flot'
 import { login, logout } from './login.js'
 import { signup } from './signup.js'
 import { drawPriceChart } from './charts.js'
-import { drawBook } from './books.js'
+import { drawStats } from './stats.js'
 
 //drawBook('#books', 'bitfinex')
-drawBook('#gdax', 'gdax')
+
+drawStats('.gdax-stats-btcusd', 'gdax', 'btcusd')
+drawStats('.gdax-stats-ethusd', 'gdax', 'ethusd')
+drawStats('.gdax-stats-ethbtc', 'gdax', 'ethbtc')
 
 // TODO: add router instead of click events
 // $('body').on('click', '.header .login-button', login);

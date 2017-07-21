@@ -76,8 +76,9 @@ func checkLimit(name string, r *http.Request) (int64, error) {
 func api() (err error) {
 	router := mux.NewRouter().StrictSlash(true)
 
+	router.Handle("/stats/gdax/{currency}", appHandler(gdaxStatsHandler)).Methods("GET")
+
 	router.Handle("/books/bitfinex", appHandler(bitfinexBooksHandler)).Methods("GET")
-	router.Handle("/books/gdax", appHandler(gdaxBooksHandler)).Methods("GET")
 	router.Handle("/bitfinex/trades/btcusd", appHandler(bitfinexTradesHandler)).Methods("GET")
 
 	// order API
@@ -89,7 +90,7 @@ func api() (err error) {
 	router.Handle("/logout", appHandler(logout))
 
 	// static pages
-	router.Handle("/", createHandler("home"))
+	router.Handle("/", createTemplateHandler("home"))
 	router.Handle("/login", appHandler(loginHandler))
 	router.Handle("/signup", appHandler(signupHandler))
 	router.Handle("/settings", appHandler(settingsHandler))

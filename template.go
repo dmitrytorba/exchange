@@ -6,7 +6,7 @@ import (
 	"text/template"
 )
 
-func createHandler(name string) http.Handler {
+func createTemplateHandler(name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		err := executeTemplate(w, name, 200, nil)
 		if err != nil {

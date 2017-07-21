@@ -108,6 +108,19 @@ create table if not exists gdax_book_ethbtc
 );
 grant all privileges on table gdax_book_ethbtc to exchange;
 
+create table if not exists gdax_book_ethusd
+(
+  time_recieved timestamp,
+  time_stamp timestamp,
+  order_id uuid,
+  price numeric,
+  order_type varchar(32),
+  volume numeric
+);
+grant all privileges on table gdax_book_ethusd to exchange;
+
+
+
 -- order_id is the taker order_id from gdax_book
 create table if not exists gdax_trades_btcusd
 (
@@ -118,3 +131,23 @@ create table if not exists gdax_trades_btcusd
   order_id uuid
 );
 grant all privileges on table gdax_trades_btcusd to exchange;
+
+create table if not exists gdax_trades_ethbtc
+(
+  time_recieved timestamp primary key,
+  time_stamp timestamp,
+  price numeric,
+  volume numeric,
+  order_id uuid
+);
+grant all privileges on table gdax_trades_ethbtc to exchange;
+
+create table if not exists gdax_trades_ethusd
+(
+  time_recieved timestamp primary key,
+  time_stamp timestamp,
+  price numeric,
+  volume numeric,
+  order_id uuid
+);
+grant all privileges on table gdax_trades_ethusd to exchange;

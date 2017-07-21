@@ -3,11 +3,12 @@ package main
 import (
 	"net/http"
 	"fmt"
+	"github.com/gorilla/mux"
 	// "strconv"
 	// "log"
 )
 
-func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
+func gdaxStatsHandler(w http.ResponseWriter, r *http.Request) error {
 	f, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "Streaming unsupported!", http.StatusInternalServerError)
@@ -17,8 +18,11 @@ func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Content-Type", "text/event-stream")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
-	
-	pubsub, err := rd.Subscribe("gdax-trade-btcusd")
+
+	vars := mux.Vars(r)
+	currency := vars["currency"]
+	key := "gdax-trade-" + currency
+	pubsub, err := rd.Subscribe(key)
 	if err != nil {
 		panic(err)
 	}
