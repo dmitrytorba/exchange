@@ -55,7 +55,7 @@ func onGdaxEvent(currency string) func(string) {
 	return func(messageStr string) {
 		var msg GdaxMsg
 		json.Unmarshal([]byte(messageStr), &msg)
-		// log.Printf("GDAX msg: %s", messageStr)
+		//log.Printf("GDAX msg: %s", messageStr)
 
 		if msg.Type == "error" {
 			log.Printf("GDAX error: %s", msg.Message)
@@ -68,6 +68,9 @@ func onGdaxEvent(currency string) func(string) {
 		if msg.Type == "received" {
 			return
 		}
+		if msg.Type == "match" {
+			writeGdaxTrade(msg, currency)
+		}
 		if msg.Price != "" {
 			// when price == "" it means there is either a 'change' message for a market order
 			// or a 'done' message that baiscally duplicates this order's 'match' message
@@ -75,6 +78,42 @@ func onGdaxEvent(currency string) func(string) {
 			writeGdaxBook(msg, currency)
 		}
 	}
+}
+
+type GdaxTrade struct {
+	Price float64
+	Volume float64
+	Timestamp time.Time
+	OrderId string
+}
+
+func parseGdaxTrade(msg GdaxMsg) GdaxTrade {
+	var trade GdaxTrade
+	var err error
+	trade.Price, err = strconv.ParseFloat(msg.Price, 64)
+	trade.Volume, err = strconv.ParseFloat(msg.Size, 64)
+	trade.Timestamp, err = time.Parse(time.RFC3339Nano, msg.Time)
+	if err != nil {
+		log.Fatal("parse gdax trade err:", err)
+	}
+	trade.OrderId = msg.MakerOrderId
+	return trade
+}
+
+func writeGdaxTrade(msg GdaxMsg, currency string) {
+	trade := parseGdaxTrade(msg)
+	queryStr := "INSERT INTO gdax_trades_" + currency +
+		"(time_recieved,time_stamp,price,volume,order_id)" +
+		"VALUES (CURRENT_TIMESTAMP,$1,$2,$3,$4)"
+	_, err := db.Exec(queryStr, trade.Timestamp, trade.Price, trade.Volume, trade.OrderId)
+	if err != nil {
+		log.Fatal("trade insert err:", err)
+	}
+	jsonTrade, err := json.Marshal(trade)
+	if err != nil {
+		log.Fatal("trade to json marshal err:", err)
+	}
+	rd.Publish("gdax-trade-" + currency, string(jsonTrade))
 }
 
 func writeGdaxBook(msg GdaxMsg, currency string) {
@@ -156,7 +195,7 @@ func resetGdaxBook(currency string, url string) {
 	}
 	var snapshot GdaxBookSnapshot
 	json.Unmarshal(body, &snapshot)
-	log.Printf("seq: %s, bids: %s asks: %s", snapshot.Sequence, len(snapshot.Bids), len(snapshot.Asks))
+	//log.Printf("seq: %s, bids: %s asks: %s", snapshot.Sequence, len(snapshot.Bids), len(snapshot.Asks))
 
 	resetGdaxBookSide(currency, "asks", snapshot.Asks)
 	resetGdaxBookSide(currency, "bids", snapshot.Bids)

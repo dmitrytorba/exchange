@@ -15,8 +15,10 @@ function buildBookHtml(title) {
 export function drawBook(selector, exchange) {
     var $container = $(selector)
     $container.append(buildBookHtml(exchange))
+    var price = d3.select(selector).select('h4')
     var evtSource = new EventSource("/books/" + exchange)
     evtSource.onmessage = function(e) {
-        console.log(e.data)
+        var trade = JSON.parse(e.data)
+        price.text(trade.Price)
     }
 }

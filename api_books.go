@@ -18,9 +18,7 @@ func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Header().Set("Connection", "keep-alive")
 	
-	fmt.Fprintf(w, "data: { exchange: 'gdax' }\n\n")
-	f.Flush()
-	pubsub, err := rd.Subscribe("gdax")
+	pubsub, err := rd.Subscribe("gdax-trade-btcusd")
 	if err != nil {
 		panic(err)
 	}
@@ -32,10 +30,8 @@ func gdaxBooksHandler(w http.ResponseWriter, r *http.Request) error {
 			panic(err)
 		}
 
-		if msg.Payload == "spread-change" {
-			//fmt.Fprintf(w, "data: { bid: %f, ask: %f }\n\n", bitfinexBid, bitfinexAsk)
-			f.Flush()
-		}
+		fmt.Fprintf(w, "data: %s \n\n", msg.Payload)
+		f.Flush()
 	}
 	return nil
 }

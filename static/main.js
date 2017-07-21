@@ -6,7 +6,7 @@ import { drawPriceChart } from './charts.js'
 import { drawBook } from './books.js'
 
 //drawBook('#books', 'bitfinex')
-drawBook('#books', 'gdax')
+drawBook('#gdax', 'gdax')
 
 // TODO: add router instead of click events
 // $('body').on('click', '.header .login-button', login);
