@@ -13,9 +13,7 @@ func createTemplateHandler(name string) http.Handler {
 		if user == nil {
 			http.Redirect(w, r, "/login", 302)
 		}
-		err = executeTemplate(w, name, 200, map[string]interface{}{
-			"Username": user.username,
-		})
+		err = executeTemplate(w, name, 200, user) 
 		if err != nil {
 			executeTemplate(w, "error", 500, map[string]interface{}{
 				"Error": err.Error(),

@@ -26,7 +26,7 @@ var (
 
 type User struct {
 	id         int64
-	username   string
+	Username   string
 	email      string
 	password   string
 	emailToken string
@@ -77,7 +77,7 @@ func addSession(user *User) error {
 	}
 	sessionId := string(randBytes)
 	// TODO: store more than the username
-	err = rd.Set("session:"+sessionId, user.username, sessionTimeout).Err()
+	err = rd.Set("session:"+sessionId, user.Username, sessionTimeout).Err()
 	if err != nil {
 		return err
 	}
@@ -95,7 +95,7 @@ func getSessionUser(sessionId string) (*User, error) {
 	} else {
 		var usr User
 		// TODO: store more than a name
-		usr.username = session
+		usr.Username = session
 		return &usr, nil
 	}
 }
@@ -149,7 +149,7 @@ func authenticateByEmailToken(idStr string, token string) (*User, error) {
 // It will also set a session
 func authenticateByPassword(usr *User) error {
 	var passwordHash string
-	err := db.QueryRow("select id, password from users where username = $1", usr.username).Scan(&usr.id, &passwordHash)
+	err := db.QueryRow("select id, password from users where username = $1", usr.Username).Scan(&usr.id, &passwordHash)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return ErrUserNotFound
@@ -197,12 +197,12 @@ func createUser(usr *User) error {
 		}
 
 		queryStr := "INSERT INTO users(username, password, email, email_token) VALUES($1, $2, $3, $4) returning id"
-		err = db.QueryRow(queryStr, usr.username, passwordHash, usr.email, emailTokenHash).Scan(&usr.id)
+		err = db.QueryRow(queryStr, usr.Username, passwordHash, usr.email, emailTokenHash).Scan(&usr.id)
 
 	} else {
 		queryStr := "INSERT INTO users(username, password) VALUES($1, $2) returning id"
 
-		err = db.QueryRow(queryStr, usr.username, passwordHash).Scan(&usr.id)
+		err = db.QueryRow(queryStr, usr.Username, passwordHash).Scan(&usr.id)
 	}
 
 	if err != nil {
@@ -219,7 +219,7 @@ func createUser(usr *User) error {
 		// all our other sql errors
 		return err
 	}
-	log.Printf("user %s created", usr.username)
+	log.Printf("user %s created", usr.Username)
 	return addSession(usr)
 
 }

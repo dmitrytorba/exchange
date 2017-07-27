@@ -32,7 +32,7 @@ func homeHandler(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	if user != nil {
-		data["Username"] = user.username
+		data["Username"] = user.Username
 		data["Authed"] = true
 	}
 

@@ -69,7 +69,7 @@ func signupPost(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	user := &User{
-		username: username,
+		Username: username,
 		password: password,
 	}
 
