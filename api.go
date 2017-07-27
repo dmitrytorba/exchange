@@ -94,6 +94,7 @@ func api() (err error) {
 	router.Handle("/login", createTemplateHandler("login", true))
 	router.Handle("/signup", appHandler(signupHandler))
 	router.Handle("/settings", createTemplateHandler("settings", false))
+	router.Handle("/settings", appHandler(settingsPost)).Methods("POST")
 	router.Handle("/history", appHandler(historyHandler))
 	router.PathPrefix("/captcha/").Handler(captcha.Server(400, 200)) // captcha!
 

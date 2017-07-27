@@ -31,6 +31,9 @@ type User struct {
 	password   string
 	emailToken string
 	sessionId  string
+	gdaxKey    string
+	gdaxSecret string
+	gdaxPassphrase string
 }
 
 func setCookie(usr *User, w http.ResponseWriter) {
@@ -174,6 +177,13 @@ func generateEmailToken() (string, error) {
 
 func encrypt(password string) ([]byte, error) {
 	return scrypt.GenerateFromPassword([]byte(password), scrypt.DefaultParams)
+}
+
+func updateUser(usr *User) error {	
+	queryStr := "UPDATE users SET (gdax_key, gdax_secret, gdax_passphrase) VALUES($1, $2, $3) WHERE id = $4"
+	
+	_, err := db.Exec(queryStr, usr.gdaxKey, usr.gdaxSecret, usr.gdaxPassphrase, usr.id)
+	return err
 }
 
 // createUser expects a user with username and password set.

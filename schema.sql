@@ -15,7 +15,10 @@ create table if not exists users
   email_token text,
   password text,
   btc bigint,
-  ltc bigint
+  ltc bigint,
+  gdax_key text,
+  gdax_secret text,
+  gdax_passhpharse text
 );
 grant all privileges on table users to exchange;
 grant usage, select on sequence users_id_seq to exchange;
