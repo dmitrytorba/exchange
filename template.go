@@ -6,14 +6,21 @@ import (
 	"text/template"
 )
 
-func createTemplateHandler(name string) http.Handler {
+func createTemplateHandler(name string, isPublic bool) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//user.go
 		user, err := getUserFromCookie(r)
 		if user == nil {
-			http.Redirect(w, r, "/login", 302)
+			if isPublic {
+				user = &User{}
+			} else {
+				http.Redirect(w, r, "/login", 302)
+				return
+			}
 		}
-		err = executeTemplate(w, name, 200, user) 
+		err = executeTemplate(w, name, 200, map[string]interface{}{
+			"User": user,
+		}) 
 		if err != nil {
 			executeTemplate(w, "error", 500, map[string]interface{}{
 				"Error": err.Error(),

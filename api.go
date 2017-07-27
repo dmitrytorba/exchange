@@ -90,8 +90,8 @@ func api() (err error) {
 	router.Handle("/logout", appHandler(logout))
 
 	// static pages
-	router.Handle("/", createTemplateHandler("home"))
-	router.Handle("/login", appHandler(loginHandler))
+	router.Handle("/", createTemplateHandler("home", false))
+	router.Handle("/login", createTemplateHandler("login", true))
 	router.Handle("/signup", appHandler(signupHandler))
 	router.Handle("/settings", appHandler(settingsHandler))
 	router.Handle("/history", appHandler(historyHandler))

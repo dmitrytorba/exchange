@@ -84,7 +84,7 @@ func onGdaxEvent(currency string) func(string) {
 			// when price == "" it means there is either a 'change' message for a market order
 			// or a 'done' message that baiscally duplicates this order's 'match' message
 			// (all this is noise that we can ignore)
-			writeGdaxBook(msg, currency)
+			//writeGdaxBook(msg, currency)
 		}
 	}
 }
@@ -243,7 +243,7 @@ func applyGdaxBookEntry(key string, price float64, volume float64, orderId strin
 		Max: priceStr,
 	}).Result()
 	if err != nil || len(vals) > 1 {
-		log.Fatal("redis err:", err)
+		log.Fatal("applyGdaxBookEntry redis err:", err)
 	}
 	var entry GdaxBookEntry
 	if len(vals) == 1 {
