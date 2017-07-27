@@ -4,9 +4,11 @@ import (
 	"net/http"
 	"fmt"
 	"github.com/gorilla/mux"
+	//"gopkg.in/redis.v4"
 	// "strconv"
 	// "log"
 )
+
 
 func gdaxStatsHandler(w http.ResponseWriter, r *http.Request) error {
 	f, ok := w.(http.Flusher)

@@ -338,3 +338,9 @@ ul.tradebar {
 	text-align: center;
 	background-color: white;
 }
+
+.settings-form label {
+    width: 200px;
+    display: inline-block;
+    text-align: right;
+}

@@ -1,15 +1,21 @@
 {{define "title"}}Exchange | Settings{{end}}
 
 {{define "body"}}
-<div class="container-small">
-	<div class="panel">
-		<div class="tabs">
-			<span id="general" class="active">General</span>
-		</div>
-
-		<div class="container general-tab active">
-			Hello
-		</div>
-	</div>
-</div>
+<form class="container settings-form" method="POST" action="/settings">
+  <div class="container">
+    <label for="gdax-key">GDAX API Key</label>
+    <input type="text" name="gdax-key"></input>
+  </div>
+  <div class="container">
+    <label for="gdax-secret">GDAX API Secret</label>
+    <input type="text" name="gdax-secret"></input>
+  </div>
+  <div class="container">
+    <label for="gdax-passphrase">GDAX API Passphrase</label>
+    <input type="text" name="gdax-passphrase"></input>
+  </div>
+  <div class="options">
+    <input type="submit" value="Submit" />
+  </div>
+</form>
 {{end}}
