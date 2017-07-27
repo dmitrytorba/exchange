@@ -1,11 +1,9 @@
-{{define "title"}}Exchange | Login Page{{end}}
+{{define "title"}}Login{{end}}
 
 {{define "body"}}
 <div class="grid">
   	<div class="login-panel">
 	    <form class="container" method="POST" action="/login">
-       		<h1>Log in</h1>
-
        		{{if .Error}}
        		<div class="error">{{.Error}}</div>
        		{{end}}
@@ -33,7 +31,6 @@
 
 		    <div class="options">
 		   		<input type="submit" value="Log in" class="signup-button"/>
-		   		<a href="/">Go Back Home</a>
 		    </div>
      </form>
    </div>

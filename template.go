@@ -8,7 +8,14 @@ import (
 
 func createTemplateHandler(name string) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		err := executeTemplate(w, name, 200, nil)
+		//user.go
+		user, err := getUserFromCookie(r)
+		if user == nil {
+			http.Redirect(w, r, "/login", 302)
+		}
+		err = executeTemplate(w, name, 200, map[string]interface{}{
+			"Username": user.username,
+		})
 		if err != nil {
 			executeTemplate(w, "error", 500, map[string]interface{}{
 				"Error": err.Error(),

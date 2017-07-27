@@ -12,7 +12,7 @@ function buildStatsHtml(title) {
 
 export function drawStats(selector, exchange, currency) {
     var $container = $(selector)
-    $container.append(buildStatsHtml(exchange))
+    $container.append(buildStatsHtml(''))
     var price = d3.select(selector).select('h4')
     var evtSource = new EventSource("/stats/" + exchange + "/" + currency)
     evtSource.onmessage = function(e) {

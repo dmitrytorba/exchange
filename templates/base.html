@@ -6,6 +6,10 @@
 	</head>
 	<body>
 		<div class="header clearfix">
+                    <div class="nav-stat gdax-stats-btcusd"></div>
+                    <div class="nav-stat gdax-stats-ethusd"></div>
+                    <div class="nav-stat gdax-stats-ethbtc"></div>
+
 		    <div class="nav clearfix">
                       {{if .Username}}
                       <a href="/settings" class="account-button">
@@ -13,13 +17,6 @@
                       </a>
                       <a href="/logout" class="logout-button">
                         logout
-                      </a>
-                      {{else}}
-		      <a href="/login" class="login-button">
-                        login
-                      </a>
-		      <a href="/signup" class="signup-button">
-                        signup
                       </a>
                       {{end}}
 		    </div>
